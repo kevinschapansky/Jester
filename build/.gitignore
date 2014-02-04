@@ -1,1 +1,2 @@
-*.o
+#ignore all, but I want the folder
+*

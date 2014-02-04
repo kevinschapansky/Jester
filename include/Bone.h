@@ -28,6 +28,7 @@ namespace jester {
 
 
 		virtual void suggestPosition();
+		BoneId getType();
 		Bone(SceneGraphNode *parent, BoneId type);
 		~Bone();
 	private:

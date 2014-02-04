@@ -16,7 +16,7 @@ void jester::Controller::init() {
 	kScene = new Scene();
 }
 
-jester::SceneGraphNode* jester::Controller::getScene() {
+jester::Scene* jester::Controller::getScene() {
 	return kScene;
 }
 

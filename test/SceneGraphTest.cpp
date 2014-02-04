@@ -3,7 +3,7 @@
 
 int main(int argc, char **argv) {
 	jester::Controller cont;
-	jester::SceneGraphNode* sceneRoot;
+	jester::Scene* sceneRoot;
 
 	cont.init();
 	sceneRoot = cont.getScene();

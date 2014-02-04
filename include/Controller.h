@@ -10,7 +10,7 @@ namespace jester {
 	class Controller {
 	public:
 		void init();
-		SceneGraphNode *getScene();
+		Scene *getScene();
 		long int getTimestamp();
 		Controller();
 		~Controller();
