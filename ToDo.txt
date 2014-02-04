@@ -1,0 +1,10 @@
+TODO:
+
+Scene Graph:
+ - Init skeleton in controller::init
+ - Fill in JesterPosition
+Prime Sense Integration:
+
+OpenGL Visualizer:
+
+

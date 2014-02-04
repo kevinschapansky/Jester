@@ -3,10 +3,20 @@
 
 #include "SceneGraphNode.h"
 #include "Bone.h"
+#include "JesterTransform.h"
 
 namespace jester {
 	class Scene : public SceneGraphNode {
-		Bone getBone(BoneID bone);
+	public:
+		Bone* getBone(Bone::BoneId bone);
+		JesterTransform getWorldTransform();
+		
+		Scene();
+		~Scene();
+	private:
+		Bone *kSkeleton[Bone::BONE_COUNT];
+
+		void buildSkeleton();
 	};
 };
 

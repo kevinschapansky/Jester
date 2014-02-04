@@ -2,18 +2,19 @@ CC := g++ # This is the main compiler
 # CC := clang --analyze # and comment out the linker last line for sanity
 SRCDIR := src
 BUILDDIR := build
-TARGET := bin/runner
+LIBDIR := lib
+LIBNAME := Jester.a
  
 SRCEXT := cpp
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
 CFLAGS := -g -Wall
-LIB := -L lib 
-INC := -I include
+LIB := -L lib -L /usr/local/include
+INC := -I include -I /usr/local/include
 
-$(TARGET): $(OBJECTS)
-	@echo " Linking..."
-	@echo " $(CC) $^ -o $(TARGET) $(LIB)"; $(CC) $^ -o $(TARGET) $(LIB)
+Jester: $(OBJECTS)
+	@echo " Creating Library..."
+	ar rcs $(LIBDIR)/$(LIBNAME) $(OBJECTS)
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 	@mkdir -p $(BUILDDIR)
@@ -24,8 +25,8 @@ clean:
 	@echo " $(RM) -r $(BUILDDIR) $(TARGET)"; $(RM) -r $(BUILDDIR) $(TARGET)
 
 # Tests
-tester:
-	$(CC) $(CFLAGS) test/tester.cpp $(INC) $(LIB) -o bin/tester
+tests:
+	$(CC) $(CFLAGS) test/SceneGraphTest.cpp $(LIBDIR)/$(LIBNAME) $(INC) $(LIB) -o bin/sceneGraphTest
 
 .PHONY: clean
 
