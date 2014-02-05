@@ -2,6 +2,7 @@
 #define _JesterTransfrom_h_
 
 #include <cstdlib>
+#include <cstring>
 #include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
 

@@ -1,3 +1,4 @@
 # Ignore Mac specific files
 .DS_Store
-
+build
+Resources/NiTE-Linux-x86-2.2/NiTEDevEnvironment

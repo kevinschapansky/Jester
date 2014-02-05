@@ -7,7 +7,7 @@
 namespace jester {
 	class Sensor : public SceneGraphNode {
 	public:
-		virtual void setTransform(JesterTransform newTransform);
+		void setTransform(JesterTransform newTransform);
 		Sensor(SceneGraphNode *parent);
 		virtual ~Sensor();
 	};
