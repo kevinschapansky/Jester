@@ -2,9 +2,12 @@
 #define _Controller_h_
 
 #include <ctime>
+#include <glm/vec3.hpp>
 
-#include "SceneGraphNode.h"
 #include "Scene.h"
+#include "DataFusionModule.h"
+#include "Sensor.h"
+#include "Bone.h"
 
 namespace jester {
 	class Controller {
@@ -12,12 +15,15 @@ namespace jester {
 		void init();
 		Scene *getScene();
 		long int getTimestamp();
-		Controller();
-		~Controller();
+		void suggestPosition(Bone::BoneId bone, Sensor *sensor, glm::vec3 position);
 
+		Controller(DataFusionModule::FusionAlgorithm algorithm);
+		~Controller();
 	private:
+		DataFusionModule::FusionAlgorithm kAlgorithm;
 		std::clock_t kStartClock;
 		Scene *kScene;
+		DataFusionModule *kFusionModule;
 	};
 };
 

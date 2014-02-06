@@ -4,8 +4,6 @@ SRCDIR := src
 BUILDDIR := build
 LIBDIR := lib
 JLIBNAME := libjester.a
-SLIBDIR := sensor/lib
-SINCDIR := sensor/include
  
 SRCEXT := cpp
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
@@ -13,11 +11,6 @@ OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
 CFLAGS := -g -Wall -std=c++0x
 LIB := -L lib -L /usr/local/include
 INC := -I include -I /usr/local/include
-
-LIBS := -lcarmine -ljester -lpthread
-
-TLIB := -L $(LIBDIR) -L $(SLIBDIR)
-TINC := -I include -I $(SINCDIR)
 
 Jester: $(OBJECTS)
 	@mkdir -p $(LIBDIR)
@@ -39,8 +32,7 @@ sensors:
 # Tests
 tests: Jester sensors
 	@echo " Building tests"
-	@echo " $(CC) $(CFLAGS) $(TINC) test/SceneGraphTest.cpp -o bin/sceneGraphTest $(TLIB) $(LIBS)"; \
-	 $(CC) $(CFLAGS) $(TINC) test/SceneGraphTest.cpp -o bin/sceneGraphTest $(TLIB) $(LIBS)
+	@make -C tests/
 
 .PHONY: clean
 

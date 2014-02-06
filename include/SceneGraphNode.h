@@ -1,18 +1,26 @@
 #ifndef _SceneGraphNode_h_
 #define _SceneGraphNode_h_
 
+#define GLM_FORCE_RADIANS
+
 #include <iterator>
 #include <vector>
-#include <glm/mat4x4.hpp>
-
-#include "JesterTransform.h"
+#include <glm/gtc/quaternion.hpp>
+#include <glm/vec3.hpp>
 
 namespace jester {
 	class SceneGraphNode {
 	public:
 		std::vector<SceneGraphNode *>::iterator children();
-		JesterTransform getTransform();
-		virtual JesterTransform getWorldTransform();
+		
+		glm::vec3 getPosition();
+		virtual glm::vec3 getWorldPosition() = 0;
+
+		glm::quat getOrientation();
+		virtual glm::quat getWorldOrientation() = 0;
+
+		SceneGraphNode *getParent();
+
 
 		SceneGraphNode(SceneGraphNode *parent);
 		virtual ~SceneGraphNode();
@@ -22,10 +30,10 @@ namespace jester {
 		void removeChild(SceneGraphNode *child);
 
 		std::vector<SceneGraphNode *> kChildren;
-		SceneGraphNode *kParent;
-
 	protected:
-		glm::mat4x4 kTransform;
+		SceneGraphNode *kParent;
+		glm::vec3 kPosition;
+		glm::quat kOrientation;
 	};
 };
 

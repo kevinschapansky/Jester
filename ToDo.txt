@@ -1,8 +1,8 @@
 TODO:
 
 Scene Graph:
+ - Implement QUATERNIONNNNSSSS
  - Write only getChildren iterator
- - Fill in JesterPosition
 
 Prime Sense Integration:
  - Get it to compile!

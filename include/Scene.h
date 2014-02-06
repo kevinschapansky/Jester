@@ -2,19 +2,22 @@
 #define _Scene_h_
 
 #include "SceneGraphNode.h"
+#include "DataFusionModule.h"
 #include "Bone.h"
-#include "JesterTransform.h"
+#include "FusionBone.h"
 
 namespace jester {
 	class Scene : public SceneGraphNode {
 	public:
+		glm::vec3 getWorldPosition();
+		glm::quat getWorldOrientation();
+
 		Bone* getBone(Bone::BoneId bone);
-		JesterTransform getWorldTransform();
 		
-		Scene();
+		Scene(DataFusionModule *fuser);
 		~Scene();
-	private:
-		Bone *kSkeleton[Bone::BONE_COUNT];
+	protected:
+		FusionBone *kSkeleton[Bone::BONE_COUNT];
 
 		void buildSkeleton();
 	};

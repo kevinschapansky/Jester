@@ -4,7 +4,6 @@
 #include "SceneGraphNode.h"
 
 namespace jester {
-
 	class Bone : public SceneGraphNode {
 	public:
 		enum BoneId {
@@ -27,10 +26,11 @@ namespace jester {
 		};
 
 
-		virtual void suggestPosition();
+		glm::vec3 getWorldPosition();
+		glm::quat getWorldOrientation();
 		BoneId getType();
 		Bone(SceneGraphNode *parent, BoneId type);
-		~Bone();
+		virtual ~Bone();
 	private:
 		BoneId kType;
 	};

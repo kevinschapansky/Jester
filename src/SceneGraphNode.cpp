@@ -3,20 +3,17 @@
 std::vector<jester::SceneGraphNode *>::iterator jester::SceneGraphNode::children() {
 	return kChildren.begin();
 }
-		
-jester::JesterTransform jester::SceneGraphNode::getTransform() {
-	return JesterTransform(kTransform);
-}
-		
-jester::JesterTransform jester::SceneGraphNode::getWorldTransform() {
-	glm::mat4x4 worldTransform = kTransform;
-	SceneGraphNode *parent = kParent;
 
-	while (parent != NULL) {
-		worldTransform *= parent->kTransform;
-		parent = parent->kParent;
-	}
-	return JesterTransform(worldTransform);
+glm::vec3 jester::SceneGraphNode::getPosition() {
+	return kPosition;
+}
+
+glm::quat jester::SceneGraphNode::getOrientation() {
+	return kOrientation;
+}
+
+jester::SceneGraphNode* jester::SceneGraphNode::getParent() {
+	return kParent;
 }
 
 jester::SceneGraphNode::SceneGraphNode(SceneGraphNode *parent) {
