@@ -10,9 +10,11 @@ SINCDIR := sensor/include
 SRCEXT := cpp
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
-CFLAGS := -g -Wall
+CFLAGS := -g -Wall -std=c++0x
 LIB := -L lib -L /usr/local/include
 INC := -I include -I /usr/local/include
+
+LIBS := -lcarmine -ljester -lpthread
 
 TLIB := -L $(LIBDIR) -L $(SLIBDIR)
 TINC := -I include -I $(SINCDIR)
@@ -37,8 +39,8 @@ sensors:
 # Tests
 tests: Jester sensors
 	@echo " Building tests"
-	@echo " $(CC) $(CFLAGS) $(TINC) test/SceneGraphTest.cpp -o bin/sceneGraphTest $(TLIB) -lcarmine -ljester "; \
-	 $(CC) $(CFLAGS) $(TINC) test/SceneGraphTest.cpp -o bin/sceneGraphTest $(TLIB) -lcarmine -ljester 
+	@echo " $(CC) $(CFLAGS) $(TINC) test/SceneGraphTest.cpp -o bin/sceneGraphTest $(TLIB) $(LIBS)"; \
+	 $(CC) $(CFLAGS) $(TINC) test/SceneGraphTest.cpp -o bin/sceneGraphTest $(TLIB) $(LIBS)
 
 .PHONY: clean
 
