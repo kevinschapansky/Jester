@@ -44,3 +44,5 @@ tests: Jester sensors
 
 .PHONY: sensors
 
+.PHONY: tests
+

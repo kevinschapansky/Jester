@@ -1,10 +1,12 @@
 TODO:
 
 Scene Graph:
- - Init skeleton in controller::init
+ - Write only getChildren iterator
  - Fill in JesterPosition
-Prime Sense Integration:
 
+Prime Sense Integration:
+ - Get it to compile!
+ - Get it to run!
 OpenGL Visualizer:
 
 
