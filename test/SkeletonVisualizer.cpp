@@ -1,22 +1,23 @@
 #include "SceneGraphNode.h"
 #include "Controller.h"
-#include "PrimeSenseCarmine.h"
+#include "PrimeSenseCarmineFactory.h"
+#include "DataFusionModule.h"
 
 #include <thread>
 #include <chrono>
 
 int main(int argc, char **argv) {
-	jester::Controller cont;
+	jester::Controller *cont;
 	jester::Scene* sceneRoot;
-	jester::PrimeSenseCarmine *carmine;
+	jester::Sensor *carmine;
 
-	cont.init();
-	sceneRoot = cont.getScene();
+	cont = new jester::Controller(jester::DataFusionModule::FusionAlgorithm::PASS_THROUGH);
+
+	cont->init();
+	sceneRoot = cont->getScene();
 
 	//traverse scene graph
 	//add sensors to scene
-	carmine = new jester::PrimeSenseCarmine(sceneRoot);
-	std::this_thread::sleep_for(std::chrono::seconds(5));
-	delete carmine;
+	carmine = jester::PrimeSenseCarmineFactory::CreateCarmineSensor(sceneRoot, cont);
 	std::this_thread::sleep_for(std::chrono::seconds(1));
 }

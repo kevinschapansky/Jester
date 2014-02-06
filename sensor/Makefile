@@ -9,20 +9,22 @@ JINCDIR := ../include
  
 SRCEXT := cpp
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
+OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
 CFLAGS := -g -Wall -std=c++0x
 LIB := -L $(JLIBDIR)
-INC := -I include -I $(JINCDIR)
+INC := -I include -I $(JINCDIR) -I $(OPENNI2_INCLUDE) -I $(NITE2_INCLUDE)
 LIBS := -ljester -pthread
+
 
 all: Carmine
 
-Carmine: $(BUILDDIR)/PrimeSenseCarmine.o
+Carmine: $(OBJECTS)
 	@mkdir -p $(LIBDIR)
 	@echo " Creating Carmine Sensor Library..."
-	@echo " ar rcs $(LIBDIR)/$(LIBNAME) $(BUILDDIR)/PrimeSenseCarmine.o ../lib/libjester.a"; \
-	ar rcs $(LIBDIR)/$(LIBNAME) $(BUILDDIR)/PrimeSenseCarmine.o ../lib/libjester.a
+	@echo " ar rcs $(LIBDIR)/$(LIBNAME) $(OBJECTS) ../lib/libjester.a"; \
+	ar rcs $(LIBDIR)/$(LIBNAME) $(OBJECTS) ../lib/libjester.a
 
-$(BUILDDIR)/PrimeSenseCarmine.o: $(SRCDIR)/PrimeSenseCarmine.cpp
+$(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 	@mkdir -p $(BUILDDIR)
 	@echo " $(CC) $(CFLAGS) $(INC) $< -c -o $@ $(LIB) $(LIBS)"; \
 	$(CC) $(CFLAGS) $(INC) $< -c -o $@ $(LIB) $(LIBS)
