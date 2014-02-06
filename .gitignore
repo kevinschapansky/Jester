@@ -1,5 +1,3 @@
 # Ignore Mac specific files
 .DS_Store
 build
-*NiTEDevEnvironment
-*OpenNIDevEnvironment
