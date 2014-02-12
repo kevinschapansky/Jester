@@ -18,8 +18,3 @@ SkeletonVisualizer:
 	@echo " Building tests"
 	@echo " $(CC) $(CFLAGS) $(TINC) $@.cpp -o ../bin/$@ $(TLIB) $(LIBS)"; \
 	 $(CC) $(CFLAGS) $(TINC) $(CARMINEINC) $@.cpp -o ../bin/$@ $(TLIB) $(CARMINELIB) $(LIBS)
-
-clean:
-	find ./bin -type f -not -name 'NiTE2' | xargs rm
-
-.PHONY: clean

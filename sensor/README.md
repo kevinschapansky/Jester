@@ -5,6 +5,10 @@ PrimeSense:
 
 	1. Download the NiTE and OpenNI versions for your OS/Architecture
 	2. Extract them and move them where you want them to live "permanently"
+
+	   (Note: as of this writing, there is a bug in OpenNI-X-x-x.x/Include/OniPlatform.h on line 40 that will prevent compilation for
+	    32 bit linux users. Replace line 40 with '#elif (__linux__ && (__i386__ || __x86_64__))' to fix)
+
 	3. Open a terminal and run 'sudo ./install.sh' in both of their root folders
 	4. Each install script creates a file called OpenNI/NiTEDevEnvironment in the same directory as the script,
 	   open them and paste their contents into your ~/.bashrc file
