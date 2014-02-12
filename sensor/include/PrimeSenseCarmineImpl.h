@@ -6,7 +6,7 @@
 #include <chrono>
 
 #include <OpenNI.h>
-#include "NiTE.h"
+#include <NiTE.h>
 
 #include "Sensor.h"
 #include "SceneGraphNode.h"

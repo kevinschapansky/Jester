@@ -19,5 +19,7 @@ int main(int argc, char **argv) {
 	//traverse scene graph
 	//add sensors to scene
 	carmine = jester::PrimeSenseCarmineFactory::CreateCarmineSensor(sceneRoot, cont);
+	carmine->start();
+	while (1);
 	std::this_thread::sleep_for(std::chrono::seconds(1));
 }

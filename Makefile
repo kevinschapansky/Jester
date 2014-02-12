@@ -32,7 +32,7 @@ sensors:
 # Tests
 tests: Jester sensors
 	@echo " Building tests"
-	@make -C tests/
+	@make -C test/
 
 .PHONY: clean
 

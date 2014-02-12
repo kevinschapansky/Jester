@@ -11,9 +11,9 @@ SRCEXT := cpp
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
 CFLAGS := -g -Wall -std=c++0x
-LIB := -L $(JLIBDIR)
+LIB := -L $(JLIBDIR) -L $(OPENNI2_REDIST) -L $(NITE2_REDIST)
 INC := -I include -I $(JINCDIR) -I $(OPENNI2_INCLUDE) -I $(NITE2_INCLUDE)
-LIBS := -ljester -pthread
+LIBS := -ljester -pthread -lOpenNI2 -lNiTE2
 
 
 all: Carmine
