@@ -4,9 +4,13 @@ Scene Graph:
  - Implement QUATERNIONNNNSSSS
  - Write only getChildren iterator
 
-Prime Sense Integration:
- - Get it to compile!
- - Get it to run!
+CarimeImpl:
+ - Base measurements on parent position
+
 OpenGL Visualizer:
 
+
+Ideas:
+ - Timestamp back from sensor class
+ - SuggestPosition relative to what
 

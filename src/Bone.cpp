@@ -5,14 +5,7 @@ glm::quat jester::Bone::getWorldOrientation() {
 }
 
 glm::vec3 jester::Bone::getWorldPosition() {
-	glm::vec3 worldPosition = kPosition;
-	SceneGraphNode *parent = kParent;
-
-	while (parent != NULL) {
-		worldPosition += parent->getPosition();
-		parent = parent->getParent();
-	}
-	return worldPosition;
+	return kPosition;
 }
 
 jester::Bone::BoneId jester::Bone::getType() {

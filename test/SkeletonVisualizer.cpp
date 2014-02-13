@@ -2,9 +2,10 @@
 #include "Controller.h"
 #include "PrimeSenseCarmineFactory.h"
 #include "DataFusionModule.h"
+#include "Bone.h"
 
-#include <thread>
-#include <chrono>
+#include <stdio.h>
+#include <glm/vec3.hpp>
 
 int main(int argc, char **argv) {
 	jester::Controller *cont;
@@ -16,10 +17,14 @@ int main(int argc, char **argv) {
 	cont->init();
 	sceneRoot = cont->getScene();
 
-	//traverse scene graph
-	//add sensors to scene
 	carmine = jester::PrimeSenseCarmineFactory::CreateCarmineSensor(sceneRoot, cont);
-	carmine->start();
-	while (1);
-	std::this_thread::sleep_for(std::chrono::seconds(1));
+	 if (!carmine->start()) {
+	 	printf("Sensor start failed\n");
+	 	exit(1);
+	 }
+	while (1) {
+		jester::Bone *head = sceneRoot->getBone(jester::Bone::BoneId::HAND_R);
+		glm::vec3 headPos = head->getWorldPosition();
+		printf("%5f %5f %5f\n",headPos.x, headPos.y, headPos.z);
+	}
 }

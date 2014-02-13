@@ -42,3 +42,7 @@ long int jester::Controller::getTimestamp() {
 void jester::Controller::suggestPosition(Bone::BoneId bone, Sensor *sensor, glm::vec3 position) {
 	kFusionModule->newPosition(bone, sensor, position);
 }
+
+void jester::Controller::suggestPosition(Bone::BoneId bone, float confidence, glm::vec3 position) {
+	kFusionModule->newPosition(bone, confidence, position);
+}

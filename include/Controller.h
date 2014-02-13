@@ -16,6 +16,7 @@ namespace jester {
 		Scene *getScene();
 		long int getTimestamp();
 		void suggestPosition(Bone::BoneId bone, Sensor *sensor, glm::vec3 position);
+		void suggestPosition(Bone::BoneId bone, float confidence, glm::vec3 position);
 
 		Controller(DataFusionModule::FusionAlgorithm algorithm);
 		~Controller();

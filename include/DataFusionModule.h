@@ -15,6 +15,7 @@ namespace jester {
 			PASS_THROUGH
 		} ;
 		virtual void newPosition(Bone::BoneId id, Sensor *sensor, glm::vec3 position) = 0;
+		virtual void newPosition(Bone::BoneId id, float confidence, glm::vec3 position) = 0;
 		void addBone(FusionBone *bone);
 	protected:
 		std::map<Bone::BoneId, FusionBone *> kBones;

@@ -29,6 +29,11 @@ namespace jester {
 		glm::vec3 getWorldPosition();
 		glm::quat getWorldOrientation();
 		BoneId getType();
+
+		static BoneId intToBoneId(int bone) {
+			return static_cast<BoneId>(bone);
+		}
+
 		Bone(SceneGraphNode *parent, BoneId type);
 		virtual ~Bone();
 	private:

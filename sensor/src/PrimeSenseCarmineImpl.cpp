@@ -1,5 +1,6 @@
 #include "PrimeSenseCarmineImpl.h"
 
+const float jester::PrimeSenseCarmineImpl::DISTANCE_SCALING_FACTOR = 1000.f;
 
 void jester::PrimeSenseCarmineImpl::pollData() {
 	nite::UserTrackerFrameRef userTrackerFrame;
@@ -18,18 +19,27 @@ void jester::PrimeSenseCarmineImpl::pollData() {
 		if (users.getSize() > 0) {
 			const nite::UserData &user = users[users.getSize() - 1];
 			
-			if (user.isNew()) {
-				kUserTracker.startSkeletonTracking(user.getId());
-			} else if (user.getSkeleton().getState() == nite::SKELETON_TRACKED) {
-				const nite::SkeletonJoint &head = user.getSkeleton().getJoint(nite::JOINT_HEAD);
-
-				if (head.getPositionConfidence() > 0.5) {
-					printf("%d. (%5.2f, %5.2f, %5.2f)\n", user.getId(), head.getPosition().x, head.getPosition().y, head.getPosition().z);
-				}
-			}
+			handleNewData(user);
 		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	} while (kDataWanted);
+}
+
+void jester::PrimeSenseCarmineImpl::handleNewData(const nite::UserData &user) {
+	if (user.isNew()) {
+		kUserTracker.startSkeletonTracking(user.getId());
+	} else if (user.getSkeleton().getState() == nite::SKELETON_TRACKED) {
+		const nite::Skeleton &skeleton = user.getSkeleton();
+		glm::vec3 position;
+
+		for (unsigned int i = 0; i < JOINT_COUNT; i++) {
+			const nite::SkeletonJoint &joint = skeleton.getJoint(intToNiteJoint(i));
+			position.x = ((float) joint.getPosition().x) / DISTANCE_SCALING_FACTOR;
+			position.y = ((float) joint.getPosition().y) / DISTANCE_SCALING_FACTOR;
+			position.z = ((float) joint.getPosition().z) / DISTANCE_SCALING_FACTOR;
+			kController->suggestPosition(Bone::intToBoneId(i), joint.getPositionConfidence(), position);
+		}
+	}
 }
 
 jester::PrimeSenseCarmineImpl::PrimeSenseCarmineImpl(SceneGraphNode *parent, Controller *controller) : Sensor(parent, controller) {
@@ -41,13 +51,20 @@ jester::PrimeSenseCarmineImpl::PrimeSenseCarmineImpl(SceneGraphNode *parent, Con
 	if (niteRc != nite::STATUS_OK)
 	{
 		printf("Carmine:: Couldn't create user tracker\n");
+		kCreationSuccessful = false;
 		return;
 	}
+	kCreationSuccessful = true;
 }
 
-void jester::PrimeSenseCarmineImpl::start() {
-	kDataWanted = true;
-	kUpdateThread = new std::thread(&jester::PrimeSenseCarmineImpl::pollData, this);
+bool jester::PrimeSenseCarmineImpl::start() {
+	if (kCreationSuccessful) {
+		kDataWanted = true;
+		kUpdateThread = new std::thread(&jester::PrimeSenseCarmineImpl::pollData, this);
+		return true;
+	} else {
+		return false;
+	}
 }
 
 jester::PrimeSenseCarmineImpl::~PrimeSenseCarmineImpl() {
@@ -55,4 +72,14 @@ jester::PrimeSenseCarmineImpl::~PrimeSenseCarmineImpl() {
 	kUpdateThread->join();
 	delete kUpdateThread;
 	nite::NiTE::shutdown();
+}
+
+ const unsigned int jester::PrimeSenseCarmineImpl::JOINTS[] = {
+			nite::JOINT_HEAD, nite::JOINT_NECK, nite::JOINT_LEFT_SHOULDER, nite::JOINT_RIGHT_SHOULDER, 
+			nite::JOINT_LEFT_ELBOW, nite::JOINT_RIGHT_ELBOW, nite::JOINT_LEFT_HAND, nite::JOINT_RIGHT_HAND,
+			nite::JOINT_TORSO, nite::JOINT_LEFT_HIP, nite::JOINT_RIGHT_HIP, nite::JOINT_LEFT_KNEE,
+			nite::JOINT_RIGHT_KNEE, nite::JOINT_LEFT_FOOT, nite::JOINT_RIGHT_FOOT};
+
+nite::JointType jester::PrimeSenseCarmineImpl::intToNiteJoint(int jointInt) {
+	return static_cast<nite::JointType>(jointInt);
 }
