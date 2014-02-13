@@ -7,7 +7,7 @@ SENSOR_LIB := ../sensor/lib
 SENSOR_INC := ../sensor/include
 JESTER_LIB := ../lib
 JESTER_INC := ../include
-LIBS := -lcarmine -ljester -lpthread -lOpenNI2 -lNiTE2
+LIBS := -lcarmine -ljester -lpthread -lOpenNI2 -lNiTE2 -DGL_GLEXT_PROTOTYPES -lGL -lglut -lGLU
 CARMINELIB := -L $(OPENNI2_REDIST) -L $(NITE2_REDIST)
 CARMINEINC := -I $(OPENNI2_INCLUDE) -I $(NITE2_INCLUDE)
 
@@ -17,4 +17,4 @@ TINC := -I $(JESTER_INC) -I $(SENSOR_INC)
 SkeletonVisualizer:
 	@echo " Building tests"
 	@echo " $(CC) $(CFLAGS) $(TINC) $@.cpp -o ../bin/$@ $(TLIB) $(LIBS)"; \
-	 $(CC) $(CFLAGS) $(TINC) $(CARMINEINC) $@.cpp -o ../bin/$@ $(TLIB) $(CARMINELIB) $(LIBS)
+	 $(CC) $(CFLAGS) $(TINC) $(CARMINEINC) GLSL_helper.cpp $@.cpp -o ../bin/$@ $(TLIB) $(CARMINELIB) $(LIBS)
