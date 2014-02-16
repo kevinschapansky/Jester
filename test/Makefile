@@ -17,4 +17,4 @@ TINC := -I $(JESTER_INC) -I $(SENSOR_INC)
 SkeletonVisualizer:
 	@echo " Building tests"
 	@echo " $(CC) $(CFLAGS) $(TINC) $@.cpp -o ../bin/$@ $(TLIB) $(LIBS)"; \
-	 $(CC) $(CFLAGS) $(TINC) $(CARMINEINC) GLSL_helper.cpp $@.cpp -o ../bin/$@ $(TLIB) $(CARMINELIB) $(LIBS)
+	 $(CC) $(CFLAGS) $(TINC) $(CARMINEINC) GLSL_helper.cpp GeometryCreator.cpp $@.cpp -o ../bin/$@ $(TLIB) $(CARMINELIB) $(LIBS)
