@@ -2,6 +2,7 @@
 #define _Bone_h_
 
 #include "SceneGraphNode.h"
+#include <glm/vec3.hpp>
 
 namespace jester {
 	class Bone : public SceneGraphNode {
@@ -25,10 +26,12 @@ namespace jester {
 		 BONE_COUNT
 		};
 
+		static const glm::vec3 DefaultPositions[BoneId::BONE_COUNT];
 
 		glm::vec3 getWorldPosition();
 		glm::quat getWorldOrientation();
 		BoneId getType();
+		float getConfidence();
 
 		static BoneId intToBoneId(int bone) {
 			return static_cast<BoneId>(bone);
@@ -38,6 +41,8 @@ namespace jester {
 		virtual ~Bone();
 	private:
 		BoneId kType;
+	protected:
+		float kConfidence;
 	};
 };
 

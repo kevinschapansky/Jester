@@ -3,12 +3,13 @@ TODO:
 Scene Graph:
  - Implement QUATERNIONNNNSSSS
  - Write only getChildren iterator
+ - Return transform in parent space
 
 CarimeImpl:
  - Base measurements on parent position
 
 OpenGL Visualizer:
-
+ - Draw cylider connecting points
 
 Ideas:
  - Timestamp back from sensor class

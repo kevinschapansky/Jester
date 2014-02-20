@@ -7,7 +7,7 @@
 namespace jester {
 	class FusionBone : public Bone {
 	public:
-		void setPosition(glm::vec3 position);
+		void setPosition(glm::vec3 position, float confidence);
 
 		FusionBone(SceneGraphNode *parent, BoneId type);
 	};
