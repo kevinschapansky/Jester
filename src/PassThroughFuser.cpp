@@ -1,11 +1,14 @@
 #include "PassThroughFuser.h"
 
-void jester::PassThroughFuser::newPosition(Bone::BoneId id, Sensor *sensor, glm::vec3 position) {
-	kBones.find(id)->second->setPosition(position, 1.0);
-}
+void jester::PassThroughFuser::newData(Bone::BoneId id, Sensor *sensor, float confidence, glm::vec3 *position, glm::quat *orientation) {
+	FusionBone *bone = kBones.find(id)->second;
 
-void jester::PassThroughFuser::newPosition(Bone::BoneId id, float confidence, glm::vec3 position) {
-	kBones.find(id)->second->setPosition(position, confidence);
+	if (position != NULL) {
+		bone->setPosition(*position, confidence);
+	}
+	if (orientation != NULL) {
+		bone->setOrientation(*orientation, confidence);
+	}
 }
 
 jester::PassThroughFuser::PassThroughFuser() : DataFusionModule() {

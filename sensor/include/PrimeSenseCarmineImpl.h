@@ -1,10 +1,13 @@
 #ifndef _PrimeSenseCarmineImpl_h_
 #define _PrimeSenseCarmineImpl_h_
 
+#define GLM_FORCE_RADIANS
+
 #include <stdio.h>
 #include <thread>
 #include <chrono>
 
+#include <glm/gtc/quaternion.hpp>
 #include <glm/vec3.hpp>
 #include <OpenNI.h>
 #include <NiTE.h>

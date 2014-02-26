@@ -20,24 +20,24 @@ void jester::Scene::buildSkeleton() {
 
 	//direct torso children
 	kSkeleton[Bone::NECK] = new FusionBone(kSkeleton[Bone::TORSO], Bone::NECK);
-	kSkeleton[Bone::HEAD] = new FusionBone(kSkeleton[Bone::NECK], Bone::HEAD);
+	kSkeleton[Bone::SKULL] = new FusionBone(kSkeleton[Bone::NECK], Bone::SKULL);
 	kSkeleton[Bone::SHOULDER_L] = new FusionBone(kSkeleton[Bone::TORSO], Bone::SHOULDER_L);
 	kSkeleton[Bone::SHOULDER_R] = new FusionBone(kSkeleton[Bone::TORSO], Bone::SHOULDER_R);
 	kSkeleton[Bone::HIP_L] = new FusionBone(kSkeleton[Bone::TORSO], Bone::HIP_L);
 	kSkeleton[Bone::HIP_R] = new FusionBone(kSkeleton[Bone::TORSO], Bone::HIP_R);
 
 	//extremity chains
-	kSkeleton[Bone::ELBOW_L] = new FusionBone(kSkeleton[Bone::SHOULDER_L], Bone::ELBOW_L);
-	kSkeleton[Bone::HAND_L] = new FusionBone(kSkeleton[Bone::ELBOW_L], Bone::HAND_L);
+	kSkeleton[Bone::HUMERUS_L] = new FusionBone(kSkeleton[Bone::SHOULDER_L], Bone::HUMERUS_L);
+	kSkeleton[Bone::RADIUS_L] = new FusionBone(kSkeleton[Bone::HUMERUS_L], Bone::RADIUS_L);
 
-	kSkeleton[Bone::ELBOW_R] = new FusionBone(kSkeleton[Bone::SHOULDER_R], Bone::ELBOW_R);
-	kSkeleton[Bone::HAND_R] = new FusionBone(kSkeleton[Bone::ELBOW_R], Bone::HAND_R);
+	kSkeleton[Bone::HUMERUS_R] = new FusionBone(kSkeleton[Bone::SHOULDER_R], Bone::HUMERUS_R);
+	kSkeleton[Bone::RADIUS_R] = new FusionBone(kSkeleton[Bone::HUMERUS_R], Bone::RADIUS_R);
 
-	kSkeleton[Bone::KNEE_L] = new FusionBone(kSkeleton[Bone::HIP_L], Bone::KNEE_L);
-	kSkeleton[Bone::FOOT_L] = new FusionBone(kSkeleton[Bone::KNEE_L], Bone::FOOT_L);
+	kSkeleton[Bone::FEMUR_L] = new FusionBone(kSkeleton[Bone::HIP_L], Bone::FEMUR_L);
+	kSkeleton[Bone::TIBIA_L] = new FusionBone(kSkeleton[Bone::FEMUR_L], Bone::TIBIA_L);
 
-	kSkeleton[Bone::KNEE_R] = new FusionBone(kSkeleton[Bone::HIP_R], Bone::KNEE_R);
-	kSkeleton[Bone::FOOT_R] = new FusionBone(kSkeleton[Bone::KNEE_R], Bone::FOOT_R);
+	kSkeleton[Bone::FEMUR_R] = new FusionBone(kSkeleton[Bone::HIP_R], Bone::FEMUR_R);
+	kSkeleton[Bone::TIBIA_R] = new FusionBone(kSkeleton[Bone::FEMUR_R], Bone::TIBIA_R);
 }
 
 jester::Scene::Scene(DataFusionModule *fuser) : SceneGraphNode(NULL) {

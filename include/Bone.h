@@ -8,21 +8,21 @@ namespace jester {
 	class Bone : public SceneGraphNode {
 	public:
 		enum BoneId {
-		 HEAD = 0,
+		 SKULL = 0,
 		 NECK,
 		 SHOULDER_L,
 		 SHOULDER_R,
-		 ELBOW_L,
-		 ELBOW_R,
-		 HAND_L,
-		 HAND_R,
+		 HUMERUS_L,
+		 HUMERUS_R,
+		 RADIUS_L,
+		 RADIUS_R,
 		 TORSO,
 		 HIP_L, 
 		 HIP_R,
-		 KNEE_L,
-		 KNEE_R,
-		 FOOT_L,
-		 FOOT_R,
+		 FEMUR_L,
+		 FEMUR_R,
+		 TIBIA_L,
+		 TIBIA_R,
 		 BONE_COUNT
 		};
 

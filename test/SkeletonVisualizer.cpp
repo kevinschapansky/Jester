@@ -21,7 +21,7 @@ extern "C" void KeyDown(unsigned char key, int x, int y);
 extern "C" void KeyUp(unsigned char key, int x, int y);
 extern "C" void MousePosition(int x, int y);
 
-#define NO_CARMINE
+//#define NO_CARMINE
 
 class SkeletonVisualizer {
 public:
@@ -239,8 +239,8 @@ private:
 		glEnable(GL_CULL_FACE);
 	    glCullFace(GL_BACK);
 
-	    kBoneMesh = GeometryCreator::CreateCylinder(0.05, 0.05, 1.0, 15, 1);
-	    kJointMesh = GeometryCreator::CreateSphere(glm::vec3(0.075));
+	    kBoneMesh = GeometryCreator::CreateCylinder(0.025, 0.0, 0.4, 15, 15);
+	    kJointMesh = GeometryCreator::CreateSphere(glm::vec3(0.05));
 
 		kKeyData.w = false;
 		kKeyData.a = false;
@@ -328,7 +328,6 @@ private:
 	}
 
 	void drawBones() {
-		/*
 		safe_glDisableVertexAttribArray(kRenderData.aPosition);
 		safe_glDisableVertexAttribArray(kRenderData.aNormal);
 
@@ -345,16 +344,21 @@ private:
         glUniform3f(kRenderData.uColor, 0.409f, 0.409f, 0.409f);
         glUniform1f(kRenderData.uMaterial, 1.f);
 
-        //trans and draw bones
-        kRenderData.modelTrans.pushMatrix();
-		kRenderData.modelTrans.loadIdentity();
-		kRenderData.modelTrans.rotate(3.14/2.0, glm::vec3(0, 1, 0));
+        for (int i = 0; i < jester::Bone::BoneId::BONE_COUNT; i++) {
+        	jester::Bone *curBone = kScene->getBone(jester::Bone::intToBoneId(i));
 
-		//actually draw the data
-		SetModel();
-		glDrawElements(GL_TRIANGLES, kBoneMesh->IndexBufferLength, GL_UNSIGNED_SHORT, 0);
-		kRenderData.modelTrans.popMatrix();
-		*/
+        	if (curBone->getConfidence() > 0.5) {
+				glUniform3f(kRenderData.uColor, 0.409f, 0.409f, 0.409f);
+			} else {
+				glUniform3f(kRenderData.uColor, 0.909f, 0.409f, 0.409f);
+			}
+
+			glm::mat4 boneModelMatrix = glm::translate(glm::mat4(1), curBone->getPosition());
+			boneModelMatrix = boneModelMatrix * glm::mat4_cast(curBone->getOrientation());
+
+			SetModel(boneModelMatrix);
+			glDrawElements(GL_TRIANGLES, kBoneMesh->IndexBufferLength, GL_UNSIGNED_SHORT, 0);
+        }
 	}
 
 	void drawJoints() {

@@ -39,10 +39,6 @@ long int jester::Controller::getTimestamp() {
 	return (long int) (clocks / CLOCKS_PER_SEC);
 }
 
-void jester::Controller::suggestPosition(Bone::BoneId bone, Sensor *sensor, glm::vec3 position) {
-	kFusionModule->newPosition(bone, sensor, position);
-}
-
-void jester::Controller::suggestPosition(Bone::BoneId bone, float confidence, glm::vec3 position) {
-	kFusionModule->newPosition(bone, confidence, position);
+void jester::Controller::suggestBoneInfo(Bone::BoneId bone, Sensor *sensor, float confidence, glm::vec3 *position, glm::quat *orientation) {
+	kFusionModule->newData(bone, sensor, confidence, position, orientation);
 }

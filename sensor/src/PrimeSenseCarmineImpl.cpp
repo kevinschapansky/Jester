@@ -31,13 +31,19 @@ void jester::PrimeSenseCarmineImpl::handleNewData(const nite::UserData &user) {
 	} else if (user.getSkeleton().getState() == nite::SKELETON_TRACKED) {
 		const nite::Skeleton &skeleton = user.getSkeleton();
 		glm::vec3 position;
+		glm::quat quaternion;
 
 		for (unsigned int i = 0; i < JOINT_COUNT; i++) {
 			const nite::SkeletonJoint &joint = skeleton.getJoint(intToNiteJoint(i));
-			position.x = ((float) joint.getPosition().x) / DISTANCE_SCALING_FACTOR;
-			position.y = ((float) joint.getPosition().y) / DISTANCE_SCALING_FACTOR;
-			position.z = ((float) joint.getPosition().z) / DISTANCE_SCALING_FACTOR;
-			kController->suggestPosition(Bone::intToBoneId(i), joint.getPositionConfidence(), position);
+			const nite::Point3f &nitePos = joint.getPosition();
+			const nite::Quaternion &niteQuat = joint.getOrientation();
+
+			position = glm::vec3(((float) nitePos.x) / DISTANCE_SCALING_FACTOR,
+								((float) nitePos.y) / DISTANCE_SCALING_FACTOR,
+								((float) nitePos.z) / DISTANCE_SCALING_FACTOR);
+			quaternion = glm::quat((float) niteQuat.w, (float) niteQuat.x, (float) niteQuat.y, (float) niteQuat.z);
+
+			kController->suggestBoneInfo(Bone::intToBoneId(i), this, joint.getPositionConfidence(), &position, &quaternion);
 		}
 	}
 }
