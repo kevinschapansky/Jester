@@ -6,15 +6,22 @@
 #include "DataFusionModule.h"
 #include "Bone.h"
 #include "GLSL_helper.h"
-#include "MStackHelp.h"
 #include "GeometryCreator.h"
 
 #include <stdio.h>
 #include <glm/vec3.hpp>
-#include "glm/gtc/type_ptr.hpp"
+#include <glm/mat4x4.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 extern "C" void ReshapeCamera(int width, int height);
 extern "C" void DrawSkeleton();
+extern "C" void KeyDownUpdate(int param);
+extern "C" void KeyDown(unsigned char key, int x, int y);
+extern "C" void KeyUp(unsigned char key, int x, int y);
+extern "C" void MousePosition(int x, int y);
+
+#define NO_CARMINE
 
 class SkeletonVisualizer {
 public:
@@ -32,10 +39,24 @@ public:
 
 		GLuint shadeProg;
 
-		RenderingHelper modelTrans;
+		glm::mat4 cameraTrans;
 		int windowWidth;
 		int windowHeight;
 	} RenderData;
+
+	typedef struct KeyData {
+		bool w;
+		bool a;
+		bool s;
+		bool d;
+
+		int mouseOffsetX;
+		int mouseOffsetY;
+		float x;
+		float z;
+		float pitch;
+		float yaw;
+	} KeyData;
 
 	static const int NUM_BONES = 16;
 
@@ -44,26 +65,19 @@ public:
 
 		kController->init();
 		kScene = kController->getScene();
-		kCarmine = jester::PrimeSenseCarmineFactory::CreateCarmineSensor(kScene, kController);
 
-		kRenderData.windowHeight = 600;
-		kRenderData.windowWidth = 600;
+		#ifndef NO_CARMINE
+			kCarmine = jester::PrimeSenseCarmineFactory::CreateCarmineSensor(kScene, kController);
+		#endif 
 
 		glutInit(argc, argv);
-		glutInitWindowPosition(20, 20);
-		glutInitWindowSize(kRenderData.windowWidth, kRenderData.windowHeight);
-		glutInitDisplayMode( GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH );
-		glutCreateWindow("Jester Skeleton Visualizer");
-		glutReshapeFunc(ReshapeCamera);
-	   	glutDisplayFunc(DrawSkeleton);
-
 	   	initialize();
 	   	getGLversion();
 
 	   	kDegToRad = 0.0174532925;
 
 	   	// Shader Setup
-	    if (!installShader("Phong.vert", "Phong.frag"))
+	    if (!installShader("../test/Phong.vert", "../test/Phong.frag"))
 	    {
 	        printf("Error installing shader!\n");
 	        exit(1);
@@ -71,10 +85,13 @@ public:
 	}
 
 	void start() {
-		if (!kCarmine->start()) {
-		 	printf("Sensor start failed\n");
-		 	exit(1);
-		}
+
+		#ifndef NO_CARMINE
+			if (!kCarmine->start()) {
+			 	printf("Sensor start failed\n");
+			 	exit(1);
+			}
+		#endif
 
 		glutMainLoop();
 	}
@@ -91,79 +108,94 @@ public:
 	 	glUseProgram(kRenderData.shadeProg);
 
 	 	SetProjectionMatrix();
-	    SetView();
+	    SetView(kRenderData.cameraTrans);
 
 	    glUniform3f(kRenderData.uLightPos, 0.f, 10.f, 5.0f );
 	    glUniform3f(kRenderData.uLightColor, .7f, .7f, .7f);
-
-	    safe_glDisableVertexAttribArray(kRenderData.aPosition);
-		safe_glDisableVertexAttribArray(kRenderData.aNormal);
-
-/*
-	    //attach bone mesh data to shader handles
-		safe_glEnableVertexAttribArray(kRenderData.aPosition);
-        glBindBuffer(GL_ARRAY_BUFFER, kBoneMesh->PositionHandle);
-        safe_glVertexAttribPointer(kRenderData.aPosition, 3, GL_FLOAT, GL_FALSE, 0, 0);
-        
-        safe_glEnableVertexAttribArray(kRenderData.aNormal);
-        glBindBuffer(GL_ARRAY_BUFFER, kBoneMesh->NormalHandle);
-        safe_glVertexAttribPointer(kRenderData.aNormal, 3, GL_FLOAT, GL_FALSE, 0, 0);
-        
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, kBoneMesh->IndexHandle);
-        glUniform3f(kRenderData.uColor, 0.409f, 0.409f, 0.409f);
-        glUniform1f(kRenderData.uMaterial, 1.f);
-
-        kRenderData.modelTrans.pushMatrix();
-		kRenderData.modelTrans.loadIdentity();
-		kRenderData.modelTrans.rotate(3.14/2.0, glm::vec3(0, 1, 0));
-
-		//actually draw the data
-		SetModel();
-		glDrawElements(GL_TRIANGLES, kBoneMesh->IndexBufferLength, GL_UNSIGNED_SHORT, 0);
-		kRenderData.modelTrans.popMatrix();
-*/
-
-		safe_glDisableVertexAttribArray(kRenderData.aPosition);
-		safe_glDisableVertexAttribArray(kRenderData.aNormal);
-
-		//attach bone mesh data to shader handles
-		safe_glEnableVertexAttribArray(kRenderData.aPosition);
-        glBindBuffer(GL_ARRAY_BUFFER, kJointMesh->PositionHandle);
-        safe_glVertexAttribPointer(kRenderData.aPosition, 3, GL_FLOAT, GL_FALSE, 0, 0);
-        
-        safe_glEnableVertexAttribArray(kRenderData.aNormal);
-        glBindBuffer(GL_ARRAY_BUFFER, kJointMesh->NormalHandle);
-        safe_glVertexAttribPointer(kRenderData.aNormal, 3, GL_FLOAT, GL_FALSE, 0, 0);
-        
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, kJointMesh->IndexHandle);
-        glUniform1f(kRenderData.uMaterial, 1.f);
-
-		for (int i = 0; i < jester::Bone::BoneId::BONE_COUNT; i++) {
-			kRenderData.modelTrans.pushMatrix();
-			kRenderData.modelTrans.loadIdentity();
-
-			jester::Bone *curBone = kScene->getBone(jester::Bone::intToBoneId(i));
-			kRenderData.modelTrans.translate(curBone->getPosition());
-
-			if (curBone->getConfidence() > 0.5) {
-				glUniform3f(kRenderData.uColor, 0.409f, 0.409f, 0.409f);
-			} else {
-				glUniform3f(kRenderData.uColor, 0.909f, 0.409f, 0.409f);
-			}
-
-			SetModel();
-			glDrawElements(GL_TRIANGLES, kJointMesh->IndexBufferLength, GL_UNSIGNED_SHORT, 0);
-			kRenderData.modelTrans.popMatrix();
-		}
-
-		//clean up 
-		safe_glDisableVertexAttribArray(kRenderData.aPosition);
-		safe_glDisableVertexAttribArray(kRenderData.aNormal);
+		
+		drawJoints();
+		drawBones();
 		//disable the shader
 		glUseProgram(0);	
 		glutSwapBuffers();
 		glutPostRedisplay();
     	printOpenGLError();
+	}
+
+	void keyDownUpdate(int param) {
+		glutTimerFunc(10, KeyDownUpdate, 10);
+
+		kKeyData.yaw += kKeyData.mouseOffsetX / 500.f;
+		kKeyData.mouseOffsetX = 0;
+
+		kKeyData.pitch += kKeyData.mouseOffsetY / 500.f;
+		kKeyData.mouseOffsetY = 0;
+
+		if (kKeyData.w) {
+			kKeyData.z -= 0.1f;
+		}
+		if (kKeyData.s) {
+			kKeyData.z += 0.1f;
+		}
+		if (kKeyData.a) {
+			kKeyData.x -= 0.1f;
+		}
+		if (kKeyData.d) {
+			kKeyData.x += 0.1f;
+		}
+		
+		kRenderData.cameraTrans = glm::rotate(glm::mat4(1), kKeyData.yaw, glm::vec3(0.f, 1.f, 0.f));
+		kRenderData.cameraTrans = glm::rotate(kRenderData.cameraTrans, kKeyData.pitch, glm::vec3(1.f, 0.f, 0.f));
+		kRenderData.cameraTrans = glm::translate(kRenderData.cameraTrans, glm::vec3(kKeyData.x, 1.f, kKeyData.z));
+
+		glutWarpPointer(kRenderData.windowWidth / 2, kRenderData.windowHeight / 2);
+	}
+
+	void keyDown(unsigned char key) {
+		switch (key) {
+        case 'w':
+            kKeyData.w = true;
+            break;
+        case 'a':
+            kKeyData.a = true;
+            break;
+        case 's':
+            kKeyData.s = true;
+            break;
+        case 'd':
+            kKeyData.d = true;
+            break;
+        case 'q': case 'Q' :
+            exit( EXIT_SUCCESS );
+            break;
+    	}
+	}
+
+	void keyUp(unsigned char key) {
+		switch (key) {
+        case 'w':
+            kKeyData.w = false;
+            break;
+        case 'a':
+            kKeyData.a = false;
+            break;
+        case 's':
+            kKeyData.s = false;
+            break;
+        case 'd':
+            kKeyData.d = false;
+            break;
+        }
+	}
+
+	void mousePosition(int x, int y) {
+		int xOffset = kRenderData.windowWidth / 2 - x;
+		int yOffset = kRenderData.windowHeight / 2 - y;
+
+		if (abs(xOffset) > 2)
+			kKeyData.mouseOffsetX += xOffset;
+		if (abs(yOffset) > 2)
+			kKeyData.mouseOffsetY += yOffset;
 	}
 
 private:
@@ -174,10 +206,30 @@ private:
 	Mesh *kBoneMesh;
 	Mesh *kJointMesh;
 	RenderData kRenderData;
+	KeyData kKeyData;
 	float kDegToRad;
 
-	/* Some OpenGL initialization */
-	void initialize ()	{				// Any GL Init Code 
+	void initialize() {
+		kRenderData.windowHeight = 600;
+		kRenderData.windowWidth = 600;
+		kKeyData.z = 3.0f;
+		kKeyData.x = 0.f;
+		kKeyData.yaw = 0.f;
+		kKeyData.pitch = 0.f;
+
+		glutInitWindowPosition(20, 20);
+		glutInitWindowSize(kRenderData.windowWidth, kRenderData.windowHeight);
+		glutInitDisplayMode( GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH );
+		glutCreateWindow("Jester Skeleton Visualizer");
+		glutReshapeFunc(ReshapeCamera);
+	   	glutDisplayFunc(DrawSkeleton);
+	   	glutKeyboardFunc(KeyDown);
+    	glutKeyboardUpFunc(KeyUp);
+    	glutSetCursor(GLUT_CURSOR_NONE);
+    	glutWarpPointer(kRenderData.windowWidth / 2, kRenderData.windowHeight / 2);
+    	glutPassiveMotionFunc(MousePosition);
+    	glutTimerFunc(1, KeyDownUpdate, 1);
+
 		// Start Of User Initialization
 		glClearColor (1.0f, 1.0f, 1.0f, 1.0f);								
 		// Black Background
@@ -186,32 +238,31 @@ private:
 		glEnable (GL_DEPTH_TEST);	// Enable Depth Testing
 		glEnable(GL_CULL_FACE);
 	    glCullFace(GL_BACK);
+
 	    kBoneMesh = GeometryCreator::CreateCylinder(0.05, 0.05, 1.0, 15, 1);
 	    kJointMesh = GeometryCreator::CreateSphere(glm::vec3(0.075));
-		kRenderData.modelTrans.useModelViewMatrix();
-		kRenderData.modelTrans.loadIdentity();
+
+		kKeyData.w = false;
+		kKeyData.a = false;
+		kKeyData.s = false;
+		kKeyData.d = false;
 	}
 
 	void SetProjectionMatrix() {
-	    glm::mat4 Projection = glm::perspective(80.0f, ((float) kRenderData.windowWidth)/ ((float) kRenderData.windowHeight), 0.1f, 100.f);
+	    glm::mat4 Projection = glm::perspective(3.1415f / 4.0f, ((float) kRenderData.windowWidth)/ ((float) kRenderData.windowHeight), 0.1f, 100.f);
 	    safe_glUniformMatrix4fv(kRenderData.uProjMatrix, glm::value_ptr(Projection));
 	}
 
-	void SetView() {
-		/*
-	    double theta = 0;
-	    double phi = 0;
-	    vec3 look = vec3(1.0 * cos(phi * kDegToRad) * cos(theta * kDegToRad),
-	                1.0 * sin(phi * kDegToRad),
-	                1.0 * cos(phi * kDegToRad) * cos((90.0 - theta) * kDegToRad));
-	   	vec3 eye(0.0, 0.0, -3.0);
-	    glm::mat4 View = glm::lookAt(eye, look + eye, vec3(0.f, 1.f, 0.f));*/
-	    glm::mat4 View = glm::lookAt(glm::vec3(0.f, 0.f, 3.f), glm::vec3(0.f, 0.f, 0.f),glm::vec3(0.f, -1.f, 0.f));
+	void SetView(glm::mat4 cameraTrans) {
+		glm::vec3 cameraPos(cameraTrans * glm::vec4(0.f, 0.f, 0.f, 1.f));
+		glm::vec3 look(cameraTrans * glm::vec4(0.f, 0.f, -1.f, 1.f));
+		glm::vec3 up(cameraTrans * glm::vec4(0.f, 1.f, 0.f, 0.f));
+	    glm::mat4 View = glm::lookAt(cameraPos, look, up);
 	    safe_glUniformMatrix4fv(kRenderData.uViewMatrix, glm::value_ptr(View));
 	}
 
-	void SetModel() {
-	    safe_glUniformMatrix4fv(kRenderData.uModelMatrix, glm::value_ptr(kRenderData.modelTrans.modelViewMatrix));
+	void SetModel(glm::mat4 modelMat) {
+	    safe_glUniformMatrix4fv(kRenderData.uModelMatrix, glm::value_ptr(modelMat));
 	}
 
 	bool installShader(std::string const & vShaderName, std::string const & fShaderName) {
@@ -275,6 +326,70 @@ private:
 	    std::cout << "Sucessfully installed shader " << kRenderData.shadeProg << std::endl;
 	    return true;
 	}
+
+	void drawBones() {
+		/*
+		safe_glDisableVertexAttribArray(kRenderData.aPosition);
+		safe_glDisableVertexAttribArray(kRenderData.aNormal);
+
+	    //attach bone mesh data to shader handles
+		safe_glEnableVertexAttribArray(kRenderData.aPosition);
+        glBindBuffer(GL_ARRAY_BUFFER, kBoneMesh->PositionHandle);
+        safe_glVertexAttribPointer(kRenderData.aPosition, 3, GL_FLOAT, GL_FALSE, 0, 0);
+        
+        safe_glEnableVertexAttribArray(kRenderData.aNormal);
+        glBindBuffer(GL_ARRAY_BUFFER, kBoneMesh->NormalHandle);
+        safe_glVertexAttribPointer(kRenderData.aNormal, 3, GL_FLOAT, GL_FALSE, 0, 0);
+        
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, kBoneMesh->IndexHandle);
+        glUniform3f(kRenderData.uColor, 0.409f, 0.409f, 0.409f);
+        glUniform1f(kRenderData.uMaterial, 1.f);
+
+        //trans and draw bones
+        kRenderData.modelTrans.pushMatrix();
+		kRenderData.modelTrans.loadIdentity();
+		kRenderData.modelTrans.rotate(3.14/2.0, glm::vec3(0, 1, 0));
+
+		//actually draw the data
+		SetModel();
+		glDrawElements(GL_TRIANGLES, kBoneMesh->IndexBufferLength, GL_UNSIGNED_SHORT, 0);
+		kRenderData.modelTrans.popMatrix();
+		*/
+	}
+
+	void drawJoints() {
+		safe_glDisableVertexAttribArray(kRenderData.aPosition);
+		safe_glDisableVertexAttribArray(kRenderData.aNormal);
+
+		//attach bone mesh data to shader handles
+		safe_glEnableVertexAttribArray(kRenderData.aPosition);
+        glBindBuffer(GL_ARRAY_BUFFER, kJointMesh->PositionHandle);
+        safe_glVertexAttribPointer(kRenderData.aPosition, 3, GL_FLOAT, GL_FALSE, 0, 0);
+        
+        safe_glEnableVertexAttribArray(kRenderData.aNormal);
+        glBindBuffer(GL_ARRAY_BUFFER, kJointMesh->NormalHandle);
+        safe_glVertexAttribPointer(kRenderData.aNormal, 3, GL_FLOAT, GL_FALSE, 0, 0);
+        
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, kJointMesh->IndexHandle);
+        glUniform1f(kRenderData.uMaterial, 1.f);
+
+		for (int i = 0; i < jester::Bone::BoneId::BONE_COUNT; i++) {
+			jester::Bone *curBone = kScene->getBone(jester::Bone::intToBoneId(i));
+
+			if (curBone->getConfidence() > 0.5) {
+				glUniform3f(kRenderData.uColor, 0.409f, 0.409f, 0.409f);
+			} else {
+				glUniform3f(kRenderData.uColor, 0.909f, 0.409f, 0.409f);
+			}
+
+			SetModel(glm::translate(glm::mat4(1), curBone->getPosition()));
+			glDrawElements(GL_TRIANGLES, kJointMesh->IndexBufferLength, GL_UNSIGNED_SHORT, 0);
+		}
+
+		//clean up 
+		safe_glDisableVertexAttribArray(kRenderData.aPosition);
+		safe_glDisableVertexAttribArray(kRenderData.aNormal);
+	}
 };
 
 SkeletonVisualizer *globalVis = NULL;
@@ -285,6 +400,22 @@ extern "C" void ReshapeCamera(int width, int height) {
 
 extern "C" void DrawSkeleton() {
 	globalVis->drawSkeleton();
+}
+
+extern "C" void KeyDownUpdate(int param) {
+	globalVis->keyDownUpdate(param);
+}
+
+extern "C" void KeyDown(unsigned char key, int x, int y) {
+	globalVis->keyDown(key);
+}
+
+extern "C" void KeyUp(unsigned char key, int x, int y) {
+	globalVis->keyUp(key);
+}
+
+extern "C" void MousePosition(int x, int y) {
+	globalVis->mousePosition(x, y);
 }
 
 int main(int argc, char **argv) {

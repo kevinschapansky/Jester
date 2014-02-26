@@ -17,6 +17,7 @@ varying vec4 vPosition;
 void main() {
     vPosition = uModelMatrix * vec4(aPosition.xyz, 1);   
     vNormal = normalize(uModelMatrix * vec4(aNormal, 0)).xyz;
+
     vColor = uColor;
 
     gl_Position = uProjMatrix * uViewMatrix * vPosition;
