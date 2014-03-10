@@ -9,10 +9,8 @@
 namespace jester {
 	class Scene : public SceneGraphNode {
 	public:
-		glm::vec3 getWorldPosition();
-		glm::quat getWorldOrientation();
-
 		Bone* getBone(Bone::BoneId bone);
+		Bone* getRootBone();
 		
 		Scene(DataFusionModule *fuser);
 		~Scene();

@@ -353,8 +353,8 @@ private:
 				glUniform3f(kRenderData.uColor, 0.909f, 0.409f, 0.409f);
 			}
 
-			glm::mat4 boneModelMatrix = glm::translate(glm::mat4(1), curBone->getPosition());
-			boneModelMatrix = boneModelMatrix * glm::mat4_cast(curBone->getOrientation());
+			glm::mat4 boneModelMatrix = glm::translate(glm::mat4(1), curBone->getWorldPosition());
+			boneModelMatrix = boneModelMatrix * glm::mat4_cast(curBone->getWorldOrientation());
 
 			SetModel(boneModelMatrix);
 			glDrawElements(GL_TRIANGLES, kBoneMesh->IndexBufferLength, GL_UNSIGNED_SHORT, 0);
@@ -386,7 +386,7 @@ private:
 				glUniform3f(kRenderData.uColor, 0.909f, 0.409f, 0.409f);
 			}
 
-			SetModel(glm::translate(glm::mat4(1), curBone->getPosition()));
+			SetModel(glm::translate(glm::mat4(1), curBone->getWorldPosition()));
 			glDrawElements(GL_TRIANGLES, kJointMesh->IndexBufferLength, GL_UNSIGNED_SHORT, 0);
 		}
 

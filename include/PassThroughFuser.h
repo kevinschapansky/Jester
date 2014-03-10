@@ -6,7 +6,8 @@
 namespace jester {
 	class PassThroughFuser : public DataFusionModule {
 	public:
-		void newData(Bone::BoneId id, Sensor *sensor, float confidence, glm::vec3 *position, glm::quat *orientation);
+		void newData(Sensor *sensor, std::vector<BoneFusionData *> data);
+		void newData(Sensor *sensor, std::vector<JointFusionData *> data);
 		PassThroughFuser();
 	};
 };

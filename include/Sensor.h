@@ -8,9 +8,6 @@ namespace jester {
 
 	class Sensor : public SceneGraphNode {
 	public:
-		glm::vec3 getWorldPosition();
-		glm::quat getWorldOrientation();
-
 		void setPosition(glm::vec3 position);
 		void setOrientation(glm::quat orientation);
 

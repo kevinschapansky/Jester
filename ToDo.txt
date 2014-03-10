@@ -1,17 +1,10 @@
 TODO:
 
-Scene Graph:
- - Implement QUATERNIONNNNSSSS
- - Write only getChildren iterator
- - Return transform in parent space
-
-CarimeImpl:
- - Base measurements on parent position
-
-OpenGL Visualizer:
- - Draw cylider connecting points
+Imm:
+ - populate DataFusionModule::setBonePositionFromEndpoints <- vector math!!111!!
+ - pop Joint new data
+ - pop setDefaultSkeleton
+ - set bone length on bone set
 
 Ideas:
- - Timestamp back from sensor class
- - SuggestPosition relative to what
-
+ - Timestamp back from sensor classor

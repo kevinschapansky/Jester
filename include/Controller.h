@@ -15,7 +15,8 @@ namespace jester {
 		void init();
 		Scene *getScene();
 		long int getTimestamp();
-		void suggestBoneInfo(Bone::BoneId bone, Sensor *sensor, float confidence, glm::vec3 *position, glm::quat *orientation);
+		void suggestBoneInfo(Sensor *sensor, std::vector<BoneFusionData *> data);
+		void suggestJointInfo(Sensor *sensor, std::vector<JointFusionData *> data);
 
 		Controller(DataFusionModule::FusionAlgorithm algorithm);
 		~Controller();

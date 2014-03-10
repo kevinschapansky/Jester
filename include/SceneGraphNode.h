@@ -7,20 +7,27 @@
 #include <vector>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+#include <glm/mat4.hpp>
 
 namespace jester {
 	class SceneGraphNode {
 	public:
-		std::vector<SceneGraphNode *>::iterator children();
+		std::vector<SceneGraphNode *>::const_iterator children();
 		
 		glm::vec3 getPosition();
-		virtual glm::vec3 getWorldPosition() = 0;
+		virtual glm::vec3 getWorldPosition();
 
 		glm::quat getOrientation();
-		virtual glm::quat getWorldOrientation() = 0;
+		virtual glm::quat getWorldOrientation();
+
+		glm::mat4 getTransform();
+		virtual glm::mat4 getWorldTransform();
+
+		static glm::vec3 positionSpaceConversion(glm::vec3 position, SceneGraphNode *current, SceneGraphNode *desired);
+		static glm::quat orientationSpaceConversion(glm::quat orientation, SceneGraphNode *current, SceneGraphNode *desired);
 
 		SceneGraphNode *getParent();
-
 
 		SceneGraphNode(SceneGraphNode *parent);
 		virtual ~SceneGraphNode();

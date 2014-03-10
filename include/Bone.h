@@ -2,23 +2,44 @@
 #define _Bone_h_
 
 #include "SceneGraphNode.h"
+#include "Sensor.h"
+
 #include <glm/vec3.hpp>
 
 namespace jester {
 	class Bone : public SceneGraphNode {
 	public:
+		enum JointId {
+			HEAD = 0,
+			C7,
+			SHOULDER_L,
+			SHOULDER_R,
+			ELBOW_L,
+			ELBOW_R,
+			WRIST_L,
+			WRIST_R,
+			HIP_L,
+			HIP_R,
+			KNEE_L,
+			KNEE_R,
+			ANKLE_L,
+			ANKLE_R,
+			JOINT_COUNT
+		};
+
 		enum BoneId {
 		 SKULL = 0,
 		 NECK,
-		 SHOULDER_L,
-		 SHOULDER_R,
+		 COLLAR_L,
+		 COLLAR_R,
 		 HUMERUS_L,
 		 HUMERUS_R,
 		 RADIUS_L,
 		 RADIUS_R,
-		 TORSO,
-		 HIP_L, 
-		 HIP_R,
+		 SPINE,
+		 ROOT,
+		 PELVIS_L, 
+		 PELVIS_R,
 		 FEMUR_L,
 		 FEMUR_R,
 		 TIBIA_L,
@@ -28,8 +49,6 @@ namespace jester {
 
 		static const glm::vec3 DefaultPositions[BoneId::BONE_COUNT];
 
-		glm::vec3 getWorldPosition();
-		glm::quat getWorldOrientation();
 		BoneId getType();
 		float getConfidence();
 
@@ -43,6 +62,7 @@ namespace jester {
 		BoneId kType;
 	protected:
 		float kConfidence;
+		float kLength;
 	};
 };
 
