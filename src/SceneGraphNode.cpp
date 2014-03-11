@@ -30,15 +30,15 @@ glm::mat4 jester::SceneGraphNode::getWorldTransform() {
 }
 
 glm::vec3 jester::SceneGraphNode::getWorldPosition() {
-	return getWorldTransform() * glm::vec4(0, 0, 0, 1);
+	return glm::vec3(getWorldTransform() * glm::vec4(0, 0, 0, 1));
 }
 
 glm::vec3 jester::SceneGraphNode::positionSpaceConversion(glm::vec3 position, SceneGraphNode *current, SceneGraphNode *desired) {
 	glm::mat4 currentWorldTransform = current->getWorldTransform();
 	glm::mat4 desiredWorldTransform = desired->getWorldTransform();
-	glm::vec3 worldPosition = currentWorldTransform * glm::vec4(position, 1);
+	glm::vec3 worldPosition = glm::vec3(currentWorldTransform * glm::vec4(position, 1));
 
-	return glm::inverse(desiredWorldTransform) * worldPosition;
+	return glm::vec3(glm::inverse(desiredWorldTransform) * glm::vec4(worldPosition, 1));
 }
 
 glm::quat jester::SceneGraphNode::orientationSpaceConversion(glm::quat orientation, SceneGraphNode *current, SceneGraphNode *desired) {

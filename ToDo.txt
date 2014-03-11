@@ -1,10 +1,14 @@
 TODO:
 
 Imm:
- - populate DataFusionModule::setBonePositionFromEndpoints <- vector math!!111!!
- - pop Joint new data
- - pop setDefaultSkeleton
- - set bone length on bone set
+ - Fill data structure in setNewSkeleton
+ - Check joint valididty in setBoneWithJoint
+ - TRANSLATE SET OFFSETS
 
 Ideas:
  - Timestamp back from sensor classor
+
+Validation:
+ - Data logger (Carmine/Leap)
+ - Create Backdrop
+ - Record major positions

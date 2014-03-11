@@ -10,6 +10,10 @@ void jester::FusionBone::setOrientation(glm::quat orientation, float confidence)
 	kConfidence = confidence;
 }
 
+void jester::FusionBone::setLength(float length) {
+	kLength = length;
+}
+
 jester::FusionBone::FusionBone(SceneGraphNode *parent, BoneId type) : Bone(parent, type) {
 
 }

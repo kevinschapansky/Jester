@@ -45,7 +45,8 @@ jester::Scene::Scene(DataFusionModule *fuser) : SceneGraphNode(NULL) {
 
 	buildSkeleton();
 
-	fuser->setSkeleton(kSkeleton);
+	fuser->setSkeletonBones(kSkeleton);
+	fuser->setDefaultSkeleton();
 }
 
 jester::Scene::~Scene() {

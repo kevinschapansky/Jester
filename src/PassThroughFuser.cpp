@@ -1,8 +1,8 @@
 #include "PassThroughFuser.h"
 
-void jester::PassThroughFuser::newData(Sensor *sensor, std::vector<BoneFusionData *> data) {
-	for (int i = 0; i < data.size(); i++) {
-		FusionBone *bone = kBones.find(data[i].id);
+void jester::PassThroughFuser::newData(Sensor *sensor, BoneFusionData data[Bone::BONE_COUNT]) {
+	for (unsigned int i = 0; i < Bone::BONE_COUNT; i++) {
+		FusionBone *bone = kBones.find(data[i].id)->second;
 
 		if (data[i].position != NULL) {
 			bone->setPosition(SceneGraphNode::positionSpaceConversion(*(data[i].position), sensor, bone->getParent()), data[i].confidence);
@@ -10,18 +10,14 @@ void jester::PassThroughFuser::newData(Sensor *sensor, std::vector<BoneFusionDat
 		if (data[i].orientation != NULL) {
 			bone->setOrientation(SceneGraphNode::orientationSpaceConversion(*(data[i].orientation), sensor, bone->getParent()), data[i].confidence);
 		}
+		if (data[i].length > 0) {
+			bone->setLength(data[i].length);
+		}
 	}
 }
 
-void jester::PassThroughFuser::newData(Sensor *sensor, std::vector<JointFusionData *> data) {
-	/*FusionBone *bone = kBones.find(id)->second;
-
-	if (position != NULL) {
-		bone->setPosition(*position, confidence);
-	}
-	if (orientation != NULL) {
-		bone->setOrientation(*orientation, confidence);
-	}*/
+void jester::PassThroughFuser::newData(Sensor *sensor, JointFusionData data[Bone::JOINT_COUNT]) {
+	setSkeletonFromJoints(sensor, data);
 }
 
 jester::PassThroughFuser::PassThroughFuser() : DataFusionModule() {
