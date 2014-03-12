@@ -26,7 +26,7 @@ void jester::DataFusionModule::setSkeletonFromJoints(SceneGraphNode *positionPar
 		float confidence = std::min(joints[jointIds.first].confidence, joints[jointIds.second].confidence);
 
 		if (startPos != NULL && endPos != NULL)
-			setBoneDataFromEndpoints(positionParent, positionParent, kBones.find(id), *startPos, *endPos, confidence);
+			setBoneDataFromEndpoints(positionParent, positionParent, kBones.find(id)->second, *startPos, *endPos, confidence);
 	}
 }
 
