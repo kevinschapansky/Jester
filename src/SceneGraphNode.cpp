@@ -13,7 +13,7 @@ glm::quat jester::SceneGraphNode::getOrientation() {
 }
 
 glm::mat4 jester::SceneGraphNode::getTransform() {
-	return glm::translate(glm::mat4_cast(kOrientation), kPosition);
+	return glm::translate(glm::mat4(1), kPosition) * glm::mat4_cast(kOrientation);
 }
 
 glm::quat jester::SceneGraphNode::getWorldOrientation() {

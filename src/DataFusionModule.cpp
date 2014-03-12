@@ -1,7 +1,7 @@
 #include "DataFusionModule.h"
 
 void jester::DataFusionModule::setDefaultSkeleton() {
-	SceneGraphNode *sceneRoot = kBones.find(Bone::ROOT)->second->getParent();//Bone::DefaultPositions[Bone::ROOT]->getParent();
+	SceneGraphNode *sceneRoot = kBones.find(Bone::ROOT)->second->getParent();
 	JointFusionData data[Bone::JOINT_COUNT];
 
 	for (int i = 0; i < Bone::JOINT_COUNT; i++) {
@@ -39,17 +39,25 @@ void jester::DataFusionModule::setSkeletonBones(FusionBone *bones[Bone::JOINT_CO
 void jester::DataFusionModule::setBoneDataFromEndpoints(SceneGraphNode *curStartParent, SceneGraphNode *curEndParent,
 			FusionBone *bone, glm::vec3 startPos, glm::vec3 endPos, float confidence) {
 	glm::vec3 worldStartPosition = glm::vec3(curStartParent->getWorldTransform() * glm::vec4(startPos, 1.f));
-	glm::vec3 worldEndPosition = glm::vec3(curEndParent->getWorldTransform() * glm::vec4(startPos, 1.f));
+	glm::vec3 worldEndPosition = glm::vec3(curEndParent->getWorldTransform() * glm::vec4(endPos, 1.f));
 	glm::mat4 parentTransform = bone->getParent()->getWorldTransform();
 	glm::mat4 invParentWorldTransform = glm::inverse(parentTransform);
 
 	glm::vec3 parentSpaceBoneVector = glm::vec3(invParentWorldTransform * glm::vec4(worldEndPosition - worldStartPosition, 0.f));
 	glm::vec3 parentVector(0, 0 , 1);
 	glm::vec3 normvector = glm::normalize(parentSpaceBoneVector);
-	float angle = glm::dot(parentVector, normvector);
-	glm::vec3 axis = glm::cross(parentVector, normvector);
+	float vectorDot = glm::dot(parentVector, normvector);
+	float angle = glm::acos(vectorDot);
+
+	if (vectorDot > 0.9999) {
+		bone->setOrientation(glm::quat(glm::vec3(0, 0, 0)), confidence);
+	} else if (vectorDot < -0.9999) {
+		bone->setOrientation(glm::quat(glm::vec3(0, 3.14, 0)), confidence);
+	} else {
+		glm::vec3 axis = glm::normalize(glm::cross(parentVector, normvector));
+		bone->setOrientation(glm::angleAxis(angle, axis), confidence);
+	}
 
 	bone->setPosition(glm::vec3(invParentWorldTransform * glm::vec4(worldStartPosition, 1)), confidence);
 	bone->setLength(glm::distance(worldStartPosition, worldEndPosition));
-	bone->setOrientation(glm::rotate(glm::quat(glm::vec3(0, 0, 0)), angle, axis), confidence);
 }

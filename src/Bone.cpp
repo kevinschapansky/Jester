@@ -2,14 +2,14 @@
 
 const glm::vec3 jester::Bone::DefaultPositions[JointId::JOINT_COUNT] = {
 	glm::vec3(0, 1.82, 0),
-	glm::vec3(0, 1.52, 0),
+	glm::vec3(0, 1.52, 0), //C7
 	glm::vec3(.30, 1.46, 0),
 	glm::vec3(-.30, 1.46, 0),
 	glm::vec3(.30, 1.22, 0),
 	glm::vec3(-.30, 1.22, 0),
 	glm::vec3(.35, .82, 0),
 	glm::vec3(-.35, .82, 0),
-	glm::vec3(0, 0.92, 0),
+	glm::vec3(0, 0.92, 0), //Pelvis midpoint
 	glm::vec3(.15, .92, 0),
 	glm::vec3(-.15, .92 ,0),
 	glm::vec3(.15, .51, 0),
@@ -17,10 +17,10 @@ const glm::vec3 jester::Bone::DefaultPositions[JointId::JOINT_COUNT] = {
 	glm::vec3(.15, 0, 0),
 	glm::vec3(-.15, 0, 0),
 	glm::vec3(0, 2, 0),
-	glm::vec3(0, 0.5, 0)
+	glm::vec3(0, .8, 0)
 };
 
-const std::map<jester::Bone::BoneId, std::pair<jester::Bone::JointId, jester::Bone::JointId>> JointToBoneMapping = {
+const std::map<jester::Bone::BoneId, std::pair<jester::Bone::JointId, jester::Bone::JointId>> jester::Bone::JointToBoneMapping = {
 	{jester::Bone::BoneId::ROOT, std::make_pair(jester::Bone::JointId::PELVIS_MIDPOINT, jester::Bone::JointId::EXTEND_DOWN)},
 
 	{jester::Bone::BoneId::PELVIS_L, std::make_pair(jester::Bone::JointId::PELVIS_MIDPOINT, jester::Bone::JointId::HIP_L)},
@@ -52,6 +52,10 @@ jester::Bone::BoneId jester::Bone::getType() {
 
 float jester::Bone::getConfidence() {
 	return kConfidence;
+}
+
+float jester::Bone::getLength() {
+	return kLength;
 }
 
 jester::Bone::Bone(SceneGraphNode *parent, BoneId type) : SceneGraphNode(parent) {

@@ -21,7 +21,7 @@ extern "C" void KeyDown(unsigned char key, int x, int y);
 extern "C" void KeyUp(unsigned char key, int x, int y);
 extern "C" void MousePosition(int x, int y);
 
-//#define NO_CARMINE
+#define NO_CARMINE
 
 class SkeletonVisualizer {
 public:
@@ -49,6 +49,7 @@ public:
 		bool a;
 		bool s;
 		bool d;
+		int highlightedBone;
 
 		int mouseOffsetX;
 		int mouseOffsetY;
@@ -113,7 +114,7 @@ public:
 	    glUniform3f(kRenderData.uLightPos, 0.f, 10.f, 5.0f );
 	    glUniform3f(kRenderData.uLightColor, .7f, .7f, .7f);
 		
-		drawJoints();
+		//drawJoints();
 		drawBones();
 		//disable the shader
 		glUseProgram(0);	
@@ -185,6 +186,10 @@ public:
         case 'd':
             kKeyData.d = false;
             break;
+        case 'b':
+        	kKeyData.highlightedBone = (kKeyData.highlightedBone + 1) % jester::Bone::BONE_COUNT;
+        	printf("Highlighting Bone: %d\n", kKeyData.highlightedBone);
+        	break;
         }
 	}
 
@@ -216,6 +221,7 @@ private:
 		kKeyData.x = 0.f;
 		kKeyData.yaw = 0.f;
 		kKeyData.pitch = 0.f;
+		kKeyData.highlightedBone = 0;
 
 		glutInitWindowPosition(20, 20);
 		glutInitWindowSize(kRenderData.windowWidth, kRenderData.windowHeight);
@@ -239,7 +245,7 @@ private:
 		glEnable(GL_CULL_FACE);
 	    glCullFace(GL_BACK);
 
-	    kBoneMesh = GeometryCreator::CreateCylinder(0.025, 0.0, 0.4, 15, 15);
+	    kBoneMesh = GeometryCreator::CreateCylinder(0.025, 0.025, 1, 15, 15);
 	    kJointMesh = GeometryCreator::CreateSphere(glm::vec3(0.05));
 
 		kKeyData.w = false;
@@ -344,17 +350,17 @@ private:
         glUniform3f(kRenderData.uColor, 0.409f, 0.409f, 0.409f);
         glUniform1f(kRenderData.uMaterial, 1.f);
 
+        
         for (int i = 0; i < jester::Bone::BoneId::BONE_COUNT; i++) {
         	jester::Bone *curBone = kScene->getBone(jester::Bone::intToBoneId(i));
 
-        	if (curBone->getConfidence() > 0.5) {
+        	if (i == kKeyData.highlightedBone) {
 				glUniform3f(kRenderData.uColor, 0.409f, 0.409f, 0.409f);
 			} else {
 				glUniform3f(kRenderData.uColor, 0.909f, 0.409f, 0.409f);
 			}
-
-			glm::mat4 boneModelMatrix = glm::translate(glm::mat4(1), curBone->getWorldPosition());
-			boneModelMatrix = boneModelMatrix * glm::mat4_cast(curBone->getWorldOrientation());
+			glm::mat4 boneModelMatrix = curBone->getWorldTransform() * glm::scale(glm::mat4(1), glm::vec3(1, 1, curBone->getLength()));
+			//boneModelMatrix = boneModelMatrix * glm::mat4_cast(curBone->getWorldOrientation());
 
 			SetModel(boneModelMatrix);
 			glDrawElements(GL_TRIANGLES, kBoneMesh->IndexBufferLength, GL_UNSIGNED_SHORT, 0);
@@ -380,9 +386,13 @@ private:
 		for (int i = 0; i < jester::Bone::BoneId::BONE_COUNT; i++) {
 			jester::Bone *curBone = kScene->getBone(jester::Bone::intToBoneId(i));
 
-			if (curBone->getConfidence() > 0.5) {
+			//printf("bone: %d x:%f y:%f z:%f\n", i, curBone->getPosition().x, curBone->getPosition().y, curBone->getPosition().z);
+
+			if (curBone->getConfidence() > 0.5 || jester::Bone::intToBoneId(i) == jester::Bone::FEMUR_L) {
 				glUniform3f(kRenderData.uColor, 0.409f, 0.409f, 0.409f);
-			} else {
+			} /*else if (jester::Bone::intToBoneId(i) == jester::Bone::PELVIS_L) { 
+
+			}*/ else {
 				glUniform3f(kRenderData.uColor, 0.909f, 0.409f, 0.409f);
 			}
 

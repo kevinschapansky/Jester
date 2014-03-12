@@ -43,7 +43,7 @@ void jester::PrimeSenseCarmineImpl::handleNewData(const nite::UserData &user) {
 								((float) nitePos.z) / DISTANCE_SCALING_FACTOR);
 			quaternion = glm::quat((float) niteQuat.w, (float) niteQuat.x, (float) niteQuat.y, (float) niteQuat.z);
 
-			kController->suggestBoneInfo(Bone::intToBoneId(i), this, joint.getPositionConfidence(), &position, &quaternion);
+			//kController->suggestBoneInfo(Bone::intToBoneId(i), this, joint.getPositionConfidence(), &position, &quaternion);
 		}
 	}
 }

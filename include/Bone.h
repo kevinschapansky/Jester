@@ -32,16 +32,16 @@ namespace jester {
 		};
 
 		enum BoneId {
-		 SKULL = 0,
+		 ROOT = 0,
+		 SPINE,
 		 NECK,
+		 SKULL,
 		 COLLAR_L,
 		 COLLAR_R,
 		 HUMERUS_L,
 		 HUMERUS_R,
 		 RADIUS_L,
 		 RADIUS_R,
-		 SPINE,
-		 ROOT,
 		 PELVIS_L, 
 		 PELVIS_R,
 		 FEMUR_L,
@@ -56,6 +56,7 @@ namespace jester {
 
 		BoneId getType();
 		float getConfidence();
+		float getLength();
 
 		static BoneId intToBoneId(int bone) {
 			return static_cast<BoneId>(bone);

@@ -2,6 +2,8 @@ TODO:
 
 Imm:
 
+Carmine:
+ - Refactor to meet new data passign paradigm
 
 Ideas:
  - Timestamp back from sensor classor
