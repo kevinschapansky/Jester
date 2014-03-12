@@ -1,9 +1,7 @@
 TODO:
 
 Imm:
- - Fill data structure in setNewSkeleton
- - Check joint valididty in setBoneWithJoint
- - TRANSLATE SET OFFSETS
+
 
 Ideas:
  - Timestamp back from sensor classor

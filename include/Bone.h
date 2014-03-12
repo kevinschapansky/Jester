@@ -5,6 +5,7 @@
 #include "Sensor.h"
 
 #include <glm/vec3.hpp>
+#include <map>
 
 namespace jester {
 	class Bone : public SceneGraphNode {
@@ -18,12 +19,15 @@ namespace jester {
 			ELBOW_R,
 			WRIST_L,
 			WRIST_R,
+			PELVIS_MIDPOINT,
 			HIP_L,
 			HIP_R,
 			KNEE_L,
 			KNEE_R,
 			ANKLE_L,
 			ANKLE_R,
+			EXTEND_UP,
+			EXTEND_DOWN,
 			JOINT_COUNT
 		};
 
@@ -47,13 +51,18 @@ namespace jester {
 		 BONE_COUNT
 		};
 
-		static const glm::vec3 DefaultPositions[BoneId::BONE_COUNT];
+		static const glm::vec3 DefaultPositions[JointId::JOINT_COUNT];
+		static const std::map<Bone::BoneId, std::pair<Bone::JointId, Bone::JointId>> JointToBoneMapping;
 
 		BoneId getType();
 		float getConfidence();
 
 		static BoneId intToBoneId(int bone) {
 			return static_cast<BoneId>(bone);
+		}
+
+		static JointId intToJointId(int joint) {
+			return static_cast<JointId>(joint);
 		}
 
 		Bone(SceneGraphNode *parent, BoneId type);
