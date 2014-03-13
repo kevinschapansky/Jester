@@ -30,21 +30,43 @@ void jester::PrimeSenseCarmineImpl::handleNewData(const nite::UserData &user) {
 		kUserTracker.startSkeletonTracking(user.getId());
 	} else if (user.getSkeleton().getState() == nite::SKELETON_TRACKED) {
 		const nite::Skeleton &skeleton = user.getSkeleton();
-		glm::vec3 position;
-		glm::quat quaternion;
+
+		jester::JointFusionData jointData[jester::Bone::JOINT_COUNT];
 
 		for (unsigned int i = 0; i < JOINT_COUNT; i++) {
 			const nite::SkeletonJoint &joint = skeleton.getJoint(intToNiteJoint(i));
 			const nite::Point3f &nitePos = joint.getPosition();
-			const nite::Quaternion &niteQuat = joint.getOrientation();
 
-			position = glm::vec3(((float) nitePos.x) / DISTANCE_SCALING_FACTOR,
+			glm::vec3 *position = new glm::vec3(((float) nitePos.x) / DISTANCE_SCALING_FACTOR,
 								((float) nitePos.y) / DISTANCE_SCALING_FACTOR,
 								((float) nitePos.z) / DISTANCE_SCALING_FACTOR);
-			quaternion = glm::quat((float) niteQuat.w, (float) niteQuat.x, (float) niteQuat.y, (float) niteQuat.z);
-
-			//kController->suggestBoneInfo(Bone::intToBoneId(i), this, joint.getPositionConfidence(), &position, &quaternion);
+			jointData[i].id = static_cast<jester::Bone::JointId>(i);
+			jointData[i].confidence = joint.getPositionConfidence();
+			jointData[i].position = position;
 		}
+
+		const nite::Point3f &headPos =  skeleton.getJoint(nite::JOINT_HEAD).getPosition();
+		const nite::Point3f &centerPos =  skeleton.getJoint(nite::JOINT_TORSO).getPosition();
+		glm::vec3 headGPos = glm::vec3(((float) headPos.x) / DISTANCE_SCALING_FACTOR,
+								((float) headPos.y) / DISTANCE_SCALING_FACTOR,
+								((float) headPos.z) / DISTANCE_SCALING_FACTOR);
+
+		glm::vec3 centerGPos = glm::vec3(((float) centerPos.x) / DISTANCE_SCALING_FACTOR,
+								((float) centerPos.y) / DISTANCE_SCALING_FACTOR,
+								((float) centerPos.z) / DISTANCE_SCALING_FACTOR);
+
+		jointData[jester::Bone::EXTEND_UP].id = jester::Bone::EXTEND_UP;
+		jointData[jester::Bone::EXTEND_UP].confidence = 1;
+		jointData[jester::Bone::EXTEND_UP].position = new glm::vec3(headGPos.x, headGPos.y + 0.2, headGPos.z);
+
+		jointData[jester::Bone::EXTEND_DOWN].id = jester::Bone::EXTEND_DOWN;
+		jointData[jester::Bone::EXTEND_DOWN].confidence = 1;
+		jointData[jester::Bone::EXTEND_DOWN].position = new glm::vec3(centerGPos.x, centerGPos.y - 0.3, centerGPos.z);
+
+		kController->suggestJointInfo(this, jointData);
+
+		for (int i = 0; i < jester::Bone::JOINT_COUNT; i++)
+			delete jointData[i].position;
 	}
 }
 

@@ -21,7 +21,7 @@ extern "C" void KeyDown(unsigned char key, int x, int y);
 extern "C" void KeyUp(unsigned char key, int x, int y);
 extern "C" void MousePosition(int x, int y);
 
-#define NO_CARMINE
+//#define NO_CARMINE
 
 class SkeletonVisualizer {
 public:
@@ -114,7 +114,7 @@ public:
 	    glUniform3f(kRenderData.uLightPos, 0.f, 10.f, 5.0f );
 	    glUniform3f(kRenderData.uLightColor, .7f, .7f, .7f);
 		
-		//drawJoints();
+		drawJoints();
 		drawBones();
 		//disable the shader
 		glUseProgram(0);	
@@ -217,7 +217,7 @@ private:
 	void initialize() {
 		kRenderData.windowHeight = 600;
 		kRenderData.windowWidth = 600;
-		kKeyData.z = 3.0f;
+		kKeyData.z = 5.0f;
 		kKeyData.x = 0.f;
 		kKeyData.yaw = 0.f;
 		kKeyData.pitch = 0.f;
@@ -350,7 +350,10 @@ private:
         glUniform3f(kRenderData.uColor, 0.409f, 0.409f, 0.409f);
         glUniform1f(kRenderData.uMaterial, 1.f);
 
-        
+        jester::Bone *rootBone = kScene->getBone(jester::Bone::ROOT);
+        glm::vec3 rootTrans = rootBone->getWorldPosition();
+        rootTrans.y *= -1;
+
         for (int i = 0; i < jester::Bone::BoneId::BONE_COUNT; i++) {
         	jester::Bone *curBone = kScene->getBone(jester::Bone::intToBoneId(i));
 
@@ -359,8 +362,8 @@ private:
 			} else {
 				glUniform3f(kRenderData.uColor, 0.909f, 0.409f, 0.409f);
 			}
-			glm::mat4 boneModelMatrix = curBone->getWorldTransform() * glm::scale(glm::mat4(1), glm::vec3(1, 1, curBone->getLength()));
-			//boneModelMatrix = boneModelMatrix * glm::mat4_cast(curBone->getWorldOrientation());
+			glm::mat4 boneModelMatrix = glm::translate(glm::mat4(1), -rootTrans) * 
+				glm::scale(curBone->getWorldTransform(), glm::vec3(curBone->getWidth(), curBone->getWidth(), curBone->getLength()));
 
 			SetModel(boneModelMatrix);
 			glDrawElements(GL_TRIANGLES, kBoneMesh->IndexBufferLength, GL_UNSIGNED_SHORT, 0);
@@ -383,20 +386,20 @@ private:
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, kJointMesh->IndexHandle);
         glUniform1f(kRenderData.uMaterial, 1.f);
 
+        jester::Bone *rootBone = kScene->getBone(jester::Bone::ROOT);
+        glm::vec3 rootTrans = rootBone->getWorldPosition();
+        rootTrans.y *= -1;
+
 		for (int i = 0; i < jester::Bone::BoneId::BONE_COUNT; i++) {
 			jester::Bone *curBone = kScene->getBone(jester::Bone::intToBoneId(i));
 
-			//printf("bone: %d x:%f y:%f z:%f\n", i, curBone->getPosition().x, curBone->getPosition().y, curBone->getPosition().z);
-
-			if (curBone->getConfidence() > 0.5 || jester::Bone::intToBoneId(i) == jester::Bone::FEMUR_L) {
+			if (curBone->getConfidence() > 0.5) {
 				glUniform3f(kRenderData.uColor, 0.409f, 0.409f, 0.409f);
-			} /*else if (jester::Bone::intToBoneId(i) == jester::Bone::PELVIS_L) { 
-
-			}*/ else {
+			} else {
 				glUniform3f(kRenderData.uColor, 0.909f, 0.409f, 0.409f);
 			}
 
-			SetModel(glm::translate(glm::mat4(1), curBone->getWorldPosition()));
+			SetModel(glm::translate(glm::mat4(1), -rootTrans) * glm::translate(glm::mat4(1), curBone->getWorldPosition()));
 			glDrawElements(GL_TRIANGLES, kJointMesh->IndexBufferLength, GL_UNSIGNED_SHORT, 0);
 		}
 

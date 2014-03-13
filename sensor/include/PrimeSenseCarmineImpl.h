@@ -14,6 +14,7 @@
 
 #include "Sensor.h"
 #include "SceneGraphNode.h"
+#include "DataFusionModule.h"
 #include "Controller.h"
 #include "Bone.h"
 

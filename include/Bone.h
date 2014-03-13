@@ -57,6 +57,7 @@ namespace jester {
 		BoneId getType();
 		float getConfidence();
 		float getLength();
+		float getWidth();
 
 		static BoneId intToBoneId(int bone) {
 			return static_cast<BoneId>(bone);
@@ -73,6 +74,7 @@ namespace jester {
 	protected:
 		float kConfidence;
 		float kLength;
+		float kWidth;
 	};
 };
 

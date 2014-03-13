@@ -14,6 +14,11 @@ void jester::FusionBone::setLength(float length) {
 	kLength = length;
 }
 
-jester::FusionBone::FusionBone(SceneGraphNode *parent, BoneId type) : Bone(parent, type) {
+void jester::FusionBone::setWidth(float width) {
+	kWidth = width;
+}
 
+jester::FusionBone::FusionBone(SceneGraphNode *parent, BoneId type) : Bone(parent, type) {
+	setLength(1);
+	setWidth(1);
 }

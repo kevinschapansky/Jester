@@ -1,7 +1,7 @@
 #include "Bone.h"
 
 const glm::vec3 jester::Bone::DefaultPositions[JointId::JOINT_COUNT] = {
-	glm::vec3(0, 1.82, 0),
+	glm::vec3(0, 1.62, 0),
 	glm::vec3(0, 1.52, 0), //C7
 	glm::vec3(.30, 1.46, 0),
 	glm::vec3(-.30, 1.46, 0),
@@ -16,7 +16,7 @@ const glm::vec3 jester::Bone::DefaultPositions[JointId::JOINT_COUNT] = {
 	glm::vec3(-.15, .51, 0),
 	glm::vec3(.15, 0, 0),
 	glm::vec3(-.15, 0, 0),
-	glm::vec3(0, 2, 0),
+	glm::vec3(0, 1.85, 0),
 	glm::vec3(0, .8, 0)
 };
 
@@ -56,6 +56,10 @@ float jester::Bone::getConfidence() {
 
 float jester::Bone::getLength() {
 	return kLength;
+}
+
+float jester::Bone::getWidth() {
+	return kWidth;
 }
 
 jester::Bone::Bone(SceneGraphNode *parent, BoneId type) : SceneGraphNode(parent) {
