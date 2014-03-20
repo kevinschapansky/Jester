@@ -18,3 +18,12 @@ PrimeSense:
 	8. Copy the NiTE2 folder from the NiTE-X-X-X.X/Samples/Bin directory to the directory with the binary you are trying to execute
 	   (Note) - You must be in the same directory as the executable in order to launch it
 	7. The supplied make files should build successfully
+
+LeapMotion:
+	1. Download current Leap Motion SDK
+	2. Extract sdk to "permanent" location
+	3. Paste the following lines into your .bashrc file:
+		'export LEAP_INCLUDE=<leap /include folder path>'
+		'export LEAP_REDIST=<path to leap /lib/x64 or /lib/x86 folder>'
+	4. Copy the 'libLeap.so' file from the appropriate lib folder into the binary directory
+

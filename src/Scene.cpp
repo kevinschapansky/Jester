@@ -37,11 +37,22 @@ void jester::Scene::buildSkeleton() {
 
 	kSkeleton[Bone::RADIUS_L] = new FusionBone(kSkeleton[Bone::HUMERUS_L], Bone::RADIUS_L);
 	kSkeleton[Bone::RADIUS_R] = new FusionBone(kSkeleton[Bone::HUMERUS_R], Bone::RADIUS_R);
+
+	//fingers
+	kSkeleton[Bone::PHALANX_L_1] = new FusionBone(kSkeleton[Bone::RADIUS_L], Bone::PHALANX_L_1);
+	kSkeleton[Bone::PHALANX_L_2] = new FusionBone(kSkeleton[Bone::RADIUS_L], Bone::PHALANX_L_2);
+	kSkeleton[Bone::PHALANX_L_3] = new FusionBone(kSkeleton[Bone::RADIUS_L], Bone::PHALANX_L_3);
+	kSkeleton[Bone::PHALANX_L_4] = new FusionBone(kSkeleton[Bone::RADIUS_L], Bone::PHALANX_L_4);
+	kSkeleton[Bone::PHALANX_L_5] = new FusionBone(kSkeleton[Bone::RADIUS_L], Bone::PHALANX_L_5);
+
+	kSkeleton[Bone::PHALANX_R_1] = new FusionBone(kSkeleton[Bone::RADIUS_R], Bone::PHALANX_R_1);
+	kSkeleton[Bone::PHALANX_R_2] = new FusionBone(kSkeleton[Bone::RADIUS_R], Bone::PHALANX_R_2);
+	kSkeleton[Bone::PHALANX_R_3] = new FusionBone(kSkeleton[Bone::RADIUS_R], Bone::PHALANX_R_3);
+	kSkeleton[Bone::PHALANX_R_4] = new FusionBone(kSkeleton[Bone::RADIUS_R], Bone::PHALANX_R_4);
+	kSkeleton[Bone::PHALANX_R_5] = new FusionBone(kSkeleton[Bone::RADIUS_R], Bone::PHALANX_R_5);
 }
 
 void jester::Scene::setSkeletonDefaults() {
-	kSkeleton[Bone::SKULL]->setWidth(3.0);
-	kSkeleton[Bone::ROOT]->setWidth(0);
 }
 
 jester::Scene::Scene(DataFusionModule *fuser) : SceneGraphNode(NULL) {

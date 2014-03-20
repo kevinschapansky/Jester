@@ -21,7 +21,7 @@ extern "C" void KeyDown(unsigned char key, int x, int y);
 extern "C" void KeyUp(unsigned char key, int x, int y);
 extern "C" void MousePosition(int x, int y);
 
-//#define NO_CARMINE
+#define NO_CARMINE
 
 class SkeletonVisualizer {
 public:
@@ -399,7 +399,10 @@ private:
 				glUniform3f(kRenderData.uColor, 0.909f, 0.409f, 0.409f);
 			}
 
-			SetModel(glm::translate(glm::mat4(1), -rootTrans) * glm::translate(glm::mat4(1), curBone->getWorldPosition()));
+			float scalingFactor = std::min(1.0f, curBone->getWidth());
+
+			SetModel(glm::translate(glm::mat4(1), -rootTrans) * glm::translate(glm::mat4(1), curBone->getWorldPosition()) *
+					glm::scale(glm::mat4(1), glm::vec3(scalingFactor, scalingFactor, scalingFactor)));
 			glDrawElements(GL_TRIANGLES, kJointMesh->IndexBufferLength, GL_UNSIGNED_SHORT, 0);
 		}
 

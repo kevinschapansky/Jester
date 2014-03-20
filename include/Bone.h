@@ -26,6 +26,26 @@ namespace jester {
 			KNEE_R,
 			ANKLE_L,
 			ANKLE_R,
+			DISTAL_L_1,
+			DISTAL_L_2,
+			DISTAL_L_3,
+			DISTAL_L_4,
+			DISTAL_L_5,
+			DISTAL_R_1,
+			DISTAL_R_2,
+			DISTAL_R_3,
+			DISTAL_R_4,
+			DISTAL_R_5,
+			METACARPO_L_1,
+			METACARPO_L_2,
+			METACARPO_L_3,
+			METACARPO_L_4,
+			METACARPO_L_5,
+			METACARPO_R_1,
+			METACARPO_R_2,
+			METACARPO_R_3,
+			METACARPO_R_4,
+			METACARPO_R_5,
 			EXTEND_UP,
 			EXTEND_DOWN,
 			JOINT_COUNT
@@ -48,11 +68,27 @@ namespace jester {
 		 FEMUR_R,
 		 TIBIA_L,
 		 TIBIA_R,
+		 PHALANX_L_1,
+		 PHALANX_L_2,
+		 PHALANX_L_3,
+		 PHALANX_L_4,
+		 PHALANX_L_5,
+		 PHALANX_R_1,
+		 PHALANX_R_2,
+		 PHALANX_R_3,
+		 PHALANX_R_4,
+		 PHALANX_R_5,
 		 BONE_COUNT
 		};
 
 		static const glm::vec3 DefaultPositions[JointId::JOINT_COUNT];
 		static const std::map<Bone::BoneId, std::pair<Bone::JointId, Bone::JointId>> JointToBoneMapping;
+		static const float SkullWidth;
+		static const float PhalanxWidth;
+		static const float RootWidth;
+		static const float DefaultWidth;
+		static const float DefaultLength;
+		static const float DefaultConfidence;
 
 		BoneId getType();
 		float getConfidence();

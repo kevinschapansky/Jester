@@ -3,26 +3,35 @@ CC := g++ # This is the main compiler
 SRCDIR := src
 BUILDDIR := build
 LIBDIR := lib
-LIBNAME := libcarmine.a
+CLIBNAME := libcarmine.a
+LLIBNAME := libleap.a
 JLIBDIR := ../lib
 JINCDIR := ../include
  
 SRCEXT := cpp
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
+COBJECTS := $(BUILDDIR)/PrimeSenseCarmineFactory.o $(BUILDDIR)/PrimeSenseCarmineImpl.o
+LOBJECTS := $(BUILDDIR)/LeapMotionFactory.o $(BUILDDIR)/LeapMotionImpl.o
 CFLAGS := -g -Wall -std=c++0x
 LIB := -L $(JLIBDIR) -L $(OPENNI2_REDIST) -L $(NITE2_REDIST)
 INC := -I include -I $(JINCDIR) -I $(OPENNI2_INCLUDE) -I $(NITE2_INCLUDE)
 LIBS := -ljester -pthread -lOpenNI2 -lNiTE2
 
 
-all: Carmine
+all: Carmine Leap
 
-Carmine: $(OBJECTS)
+Carmine: $(COBJECTS)
 	@mkdir -p $(LIBDIR)
 	@echo " Creating Carmine Sensor Library..."
-	@echo " ar rcs $(LIBDIR)/$(LIBNAME) $(OBJECTS) ../lib/libjester.a"; \
-	ar rcs $(LIBDIR)/$(LIBNAME) $(OBJECTS) ../lib/libjester.a
+	@echo " ar rcs $(LIBDIR)/$(CLIBNAME) $(COBJECTS) ../lib/libjester.a"; \
+	ar rcs $(LIBDIR)/$(CLIBNAME) $(COBJECTS) ../lib/libjester.a
+	
+Leap: $(LOBJECTS)
+	@mkdir -p $(LIBDIR)
+	@echo " Creating Leap Sensor Library..."
+	@echo " ar rcs $(LIBDIR)/$(LLIBNAME) $(LOBJECTS) ../lib/libjester.a"; \
+	ar rcs $(LIBDIR)/$(LLIBNAME) $(LOBJECTS) ../lib/libjester.a
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 	@mkdir -p $(BUILDDIR)
@@ -31,7 +40,8 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 
 clean:
 	@echo " Cleaning..."; 
-	@echo " $(RM) -r $(BUILDDIR)"; $(RM) -r $(BUILDDIR) $(LIBDIR)
+	@echo " $(RM) -r $(BUILDDIR) $(LIBDIR)"; \
+	$(RM) -r $(BUILDDIR) $(LIBDIR)
 
 .PHONY: clean
 
