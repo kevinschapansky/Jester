@@ -14,9 +14,9 @@ OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
 COBJECTS := $(BUILDDIR)/PrimeSenseCarmineFactory.o $(BUILDDIR)/PrimeSenseCarmineImpl.o
 LOBJECTS := $(BUILDDIR)/LeapMotionFactory.o $(BUILDDIR)/LeapMotionImpl.o
 CFLAGS := -g -Wall -std=c++0x
-LIB := -L $(JLIBDIR) -L $(OPENNI2_REDIST) -L $(NITE2_REDIST)
-INC := -I include -I $(JINCDIR) -I $(OPENNI2_INCLUDE) -I $(NITE2_INCLUDE)
-LIBS := -ljester -pthread -lOpenNI2 -lNiTE2
+LIB := -L $(JLIBDIR) -L $(OPENNI2_REDIST) -L $(NITE2_REDIST) -L $(LEAP_REDIST)
+INC := -I include -I $(JINCDIR) -I $(OPENNI2_INCLUDE) -I $(NITE2_INCLUDE) -I $(LEAP_INCLUDE)
+LIBS := -ljester -pthread -lLeap -lOpenNI2 -lNiTE2
 
 
 all: Carmine Leap

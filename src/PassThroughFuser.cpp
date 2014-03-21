@@ -17,7 +17,23 @@ void jester::PassThroughFuser::newData(Sensor *sensor, BoneFusionData data[Bone:
 }
 
 void jester::PassThroughFuser::newData(Sensor *sensor, JointFusionData data[Bone::JOINT_COUNT]) {
+	std::vector<glm::vec3*> defaultBones;
+	glm::mat4 invSensorTrans = glm::inverse(sensor->getWorldTransform());
+
+	for (int i = 0; i < Bone::JOINT_COUNT; i++) {
+		if (data[i].position == NULL) {
+			glm::vec3 *defaultPosition = new glm::vec3(Bone::DefaultPositions[i]);
+			*defaultPosition = glm::vec3(invSensorTrans * glm::vec4(*defaultPosition, 1));
+
+			defaultBones.push_back(defaultPosition);
+			data[i].position = defaultPosition;
+		}
+	}
+
 	setSkeletonFromJoints(sensor, data);
+
+	for (int i = 0; i < defaultBones.size(); i++)
+		delete defaultBones[i];
 }
 
 jester::PassThroughFuser::PassThroughFuser() : DataFusionModule() {

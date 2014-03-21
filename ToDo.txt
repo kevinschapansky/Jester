@@ -1,16 +1,18 @@
 TODO:
 
 Imm:
+ - when using default joint positions, transform by known joints so defaults move
+ 	+ (Default World Position) -> (parent space Position) -> offset by new parent position
+ - OR MAYBE USE BONES?
 
 Carmine:
 
 Leap:
- - Ya know - get library compiling
+ - Bring in fingers
 
 Ideas:
  - Timestamp back from sensor classor
+ - Supply logging #ifdef to write out sensor readings
 
 Validation:
- - Data logger (Carmine/Leap)
- - Create Backdrop
- - Record major positions
+ - Ball bounce demo

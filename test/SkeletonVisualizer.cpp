@@ -3,6 +3,7 @@
 #include "SceneGraphNode.h"
 #include "Controller.h"
 #include "PrimeSenseCarmineFactory.h"
+#include "LeapMotionFactory.h"
 #include "DataFusionModule.h"
 #include "Bone.h"
 #include "GLSL_helper.h"
@@ -22,6 +23,7 @@ extern "C" void KeyUp(unsigned char key, int x, int y);
 extern "C" void MousePosition(int x, int y);
 
 #define NO_CARMINE
+//#define NO_LEAP
 
 class SkeletonVisualizer {
 public:
@@ -57,6 +59,7 @@ public:
 		float z;
 		float pitch;
 		float yaw;
+		bool captureMouse;
 	} KeyData;
 
 	static const int NUM_BONES = 16;
@@ -70,6 +73,12 @@ public:
 		#ifndef NO_CARMINE
 			kCarmine = jester::PrimeSenseCarmineFactory::CreateCarmineSensor(kScene, kController);
 		#endif 
+
+		#ifndef NO_LEAP
+			kLeap = jester::LeapMotionFactory::CreateLeapSensor(kScene, kController);
+			kLeap->setOrientation(glm::angleAxis(3.14f, glm::vec3(0, 1, 0)));
+			kLeap->setPosition(glm::vec3(0, 1, 0.5f));
+		#endif
 
 		glutInit(argc, argv);
 	   	initialize();
@@ -86,10 +95,16 @@ public:
 	}
 
 	void start() {
-
 		#ifndef NO_CARMINE
 			if (!kCarmine->start()) {
-			 	printf("Sensor start failed\n");
+			 	printf("Carmine sensor start failed\n");
+			 	exit(1);
+			}
+		#endif
+
+		#ifndef NO_LEAP
+			if (!kLeap->start()) {
+			 	printf("Leap sensor start failed\n");
 			 	exit(1);
 			}
 		#endif
@@ -149,7 +164,8 @@ public:
 		kRenderData.cameraTrans = glm::rotate(kRenderData.cameraTrans, kKeyData.pitch, glm::vec3(1.f, 0.f, 0.f));
 		kRenderData.cameraTrans = glm::translate(kRenderData.cameraTrans, glm::vec3(kKeyData.x, 1.f, kKeyData.z));
 
-		glutWarpPointer(kRenderData.windowWidth / 2, kRenderData.windowHeight / 2);
+		if (kKeyData.captureMouse)
+			glutWarpPointer(kRenderData.windowWidth / 2, kRenderData.windowHeight / 2);
 	}
 
 	void keyDown(unsigned char key) {
@@ -166,6 +182,9 @@ public:
         case 'd':
             kKeyData.d = true;
             break;
+        case 'm':
+        	kKeyData.captureMouse = !kKeyData.captureMouse;
+        	break;
         case 'q': case 'Q' :
             exit( EXIT_SUCCESS );
             break;
@@ -207,6 +226,7 @@ private:
 	jester::Controller *kController;
 	jester::Scene *kScene;
 	jester::Sensor *kCarmine;
+	jester::Sensor *kLeap;
 
 	Mesh *kBoneMesh;
 	Mesh *kJointMesh;
@@ -222,6 +242,7 @@ private:
 		kKeyData.yaw = 0.f;
 		kKeyData.pitch = 0.f;
 		kKeyData.highlightedBone = 0;
+		kKeyData.captureMouse = true;
 
 		glutInitWindowPosition(20, 20);
 		glutInitWindowSize(kRenderData.windowWidth, kRenderData.windowHeight);

@@ -45,6 +45,13 @@ void jester::PrimeSenseCarmineImpl::handleNewData(const nite::UserData &user) {
 			jointData[i].position = position;
 		}
 
+		//Fill the finger bones with null confidence
+		for (int i = JOINT_COUNT; i < jester::Bone::JOINT_COUNT; i++) {
+			jointData[i].id = static_cast<jester::Bone::JointId>(i);
+			jointData[i].confidence = 0.0;
+			jointData[i].position = NULL;
+		}
+
 		const nite::Point3f &headPos =  skeleton.getJoint(nite::JOINT_HEAD).getPosition();
 		const nite::Point3f &centerPos =  skeleton.getJoint(nite::JOINT_TORSO).getPosition();
 		glm::vec3 headGPos = glm::vec3(((float) headPos.x) / DISTANCE_SCALING_FACTOR,
