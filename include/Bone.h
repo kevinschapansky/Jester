@@ -82,7 +82,7 @@ namespace jester {
 		};
 
 		static const glm::vec3 DefaultPositions[JointId::JOINT_COUNT];
-		static const std::map<Bone::BoneId, std::pair<Bone::JointId, Bone::JointId>> JointToBoneMapping;
+		static const std::map<Bone::BoneId, std::pair<Bone::JointId, Bone::JointId>> BoneToJointsMap;
 		static const float SkullWidth;
 		static const float PhalanxWidth;
 		static const float RootWidth;
@@ -94,6 +94,7 @@ namespace jester {
 		float getConfidence();
 		float getLength();
 		float getWidth();
+		std::pair<glm::vec3, glm::vec3> getDefaultJointPositions();
 
 		static BoneId intToBoneId(int bone) {
 			return static_cast<BoneId>(bone);
@@ -111,6 +112,7 @@ namespace jester {
 		float kConfidence;
 		float kLength;
 		float kWidth;
+		std::pair<glm::vec3, glm::vec3> *kDefaultJointPositions;
 	};
 };
 

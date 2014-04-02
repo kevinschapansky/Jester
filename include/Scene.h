@@ -18,7 +18,6 @@ namespace jester {
 		FusionBone *kSkeleton[Bone::BONE_COUNT];
 
 		void buildSkeleton();
-		void setSkeletonDefaults();
 	};
 };
 

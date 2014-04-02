@@ -16,7 +16,7 @@ LEAPINC := -I $(LEAP_INCLUDE)
 TLIB := -L $(JESTER_LIB) -L $(SENSOR_LIB)
 TINC := -I $(JESTER_INC) -I $(SENSOR_INC)
 
-all: SkeletonVisualizer SensorDataLogger
+all: SkeletonVisualizer
 
 SkeletonVisualizer:
 	@echo " Building tests"

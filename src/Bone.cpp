@@ -46,7 +46,7 @@ const glm::vec3 jester::Bone::DefaultPositions[JointId::JOINT_COUNT] = {
 	glm::vec3(0, .8, 0) //extend down
 };
 
-const std::map<jester::Bone::BoneId, std::pair<jester::Bone::JointId, jester::Bone::JointId>> jester::Bone::JointToBoneMapping = {
+const std::map<jester::Bone::BoneId, std::pair<jester::Bone::JointId, jester::Bone::JointId>> jester::Bone::BoneToJointsMap = {
 	{jester::Bone::BoneId::ROOT, std::make_pair(jester::Bone::JointId::PELVIS_MIDPOINT, jester::Bone::JointId::EXTEND_DOWN)},
 
 	{jester::Bone::BoneId::PELVIS_L, std::make_pair(jester::Bone::JointId::PELVIS_MIDPOINT, jester::Bone::JointId::HIP_L)},
@@ -106,12 +106,18 @@ float jester::Bone::getWidth() {
 	return kWidth;
 }
 
+std::pair<glm::vec3, glm::vec3> jester::Bone::getDefaultJointPositions() {
+	if (kDefaultJointPositions == NULL)
+		return std::make_pair(glm::vec3(0), glm::vec3(0));
+	return *kDefaultJointPositions;
+}
+
 jester::Bone::Bone(SceneGraphNode *parent, BoneId type) : SceneGraphNode(parent) {
 	kType = type;
 	kPosition = DefaultPositions[kType];
 	kConfidence = Bone::DefaultConfidence;
 	kLength = Bone::DefaultLength;
-
+	kDefaultJointPositions = NULL;
 
 	switch (type) {
 	case Bone::BoneId::SKULL:

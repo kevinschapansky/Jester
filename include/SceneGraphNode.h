@@ -22,7 +22,7 @@ namespace jester {
 		glm::quat getOrientation();
 		virtual glm::quat getWorldOrientation();
 
-		glm::mat4 getTransform();
+		virtual glm::mat4 getTransform();
 		virtual glm::mat4 getWorldTransform();
 
 		static glm::vec3 positionSpaceConversion(glm::vec3 position, SceneGraphNode *current, SceneGraphNode *desired);

@@ -52,15 +52,11 @@ void jester::Scene::buildSkeleton() {
 	kSkeleton[Bone::PHALANX_R_5] = new FusionBone(kSkeleton[Bone::RADIUS_R], Bone::PHALANX_R_5);
 }
 
-void jester::Scene::setSkeletonDefaults() {
-}
-
 jester::Scene::Scene(DataFusionModule *fuser) : SceneGraphNode(NULL) {
 	kOrientation = glm::quat_cast(glm::mat4(1));
 	kPosition = glm::vec3(0);
 
 	buildSkeleton();
-	setSkeletonDefaults();
 
 	fuser->setSkeletonBones(kSkeleton);
 	fuser->setDefaultSkeleton();

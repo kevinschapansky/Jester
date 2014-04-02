@@ -12,6 +12,7 @@ namespace jester {
 		void setOrientation(glm::quat orientation, float confidence);
 		void setLength(float length);
 		void setWidth(float width);
+		void setDefaultEndpoints(glm::vec3, glm::vec3);
 
 		FusionBone(SceneGraphNode *parent, BoneId type);
 	};

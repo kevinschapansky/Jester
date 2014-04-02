@@ -12,6 +12,18 @@ void jester::DataFusionModule::setDefaultSkeleton() {
 
 	setSkeletonFromJoints(sceneRoot, data);
 
+	//populate the default endpoints for when bones are set with unknown joint positions
+	for (int i = 0; i < Bone::BONE_COUNT; i++) {
+		FusionBone *bone = kBones.find(Bone::intToBoneId(i))->second;
+		std::pair<Bone::JointId, Bone::JointId> jointIds = Bone::BoneToJointsMap.find(Bone::intToBoneId(i))->second;
+		glm::mat4 invParentTransform = glm::inverse(bone->getParent()->getWorldTransform());
+		glm::vec3 parentSpaceStart = bone->getPosition();
+		glm::vec3 parentSpaceEnd = glm::vec3(invParentTransform * glm::vec4(Bone::DefaultPositions[jointIds.second], 1));
+		glm::vec3 parentBoneEndpoint = glm::vec3(0, 0, ((Bone*) bone->getParent())->getLength());
+
+		bone->setDefaultEndpoints(parentSpaceStart - parentBoneEndpoint, parentSpaceEnd - parentBoneEndpoint);
+	}
+
 	for (int i = 0; i < Bone::JOINT_COUNT; i++)
 		delete data[i].position;
 }
@@ -20,13 +32,28 @@ void jester::DataFusionModule::setSkeletonFromJoints(SceneGraphNode *positionPar
 
 	for (unsigned int i = 0; i < Bone::BONE_COUNT; i++) {
 		Bone::BoneId id = Bone::intToBoneId(i);
-		std::pair<Bone::JointId, Bone::JointId> jointIds = Bone::JointToBoneMapping.find(id)->second;
+		std::pair<Bone::JointId, Bone::JointId> jointIds = Bone::BoneToJointsMap.find(id)->second;
 		glm::vec3 *startPos = joints[jointIds.first].position;
 		glm::vec3 *endPos = joints[jointIds.second].position;
 		float confidence = std::min(joints[jointIds.first].confidence, joints[jointIds.second].confidence);
+		FusionBone *bone = kBones.find(id)->second;
 
-		if (startPos != NULL && endPos != NULL)
-			setBoneDataFromEndpoints(positionParent, positionParent, kBones.find(id)->second, *startPos, *endPos, confidence);
+
+		if (startPos == NULL && endPos == NULL) {
+			setBoneDataFromEndpoints(bone->getParent(), bone->getParent(), bone,
+					bone->getDefaultJointPositions().first + glm::vec3(0, 0, ((Bone*) bone->getParent())->getLength()),
+					bone->getDefaultJointPositions().second + glm::vec3(0, 0, ((Bone*) bone->getParent())->getLength()), 0);
+		} else if (startPos == NULL) {
+			setBoneDataFromEndpoints(bone->getParent(), positionParent, bone,
+					bone->getDefaultJointPositions().first + glm::vec3(0, 0, ((Bone*) bone->getParent())->getLength()),
+					*endPos, 0);
+		} else if (endPos == NULL) {
+			setBoneDataFromEndpoints(positionParent, bone, bone,
+					*startPos,
+					bone->getDefaultJointPositions().second + glm::vec3(0, 0, ((Bone*) bone->getParent())->getLength()), 0);
+		} else {
+			setBoneDataFromEndpoints(positionParent, positionParent, bone, *startPos, *endPos, confidence);
+		}
 	}
 }
 
