@@ -7,6 +7,7 @@
 #include <thread>
 #include <chrono>
 #include <vector>
+#include <algorithm>
 
 #include <glm/gtc/quaternion.hpp>
 #include <glm/vec3.hpp>
@@ -20,28 +21,42 @@
 #include "Bone.h"
 
 namespace jester {
-	class LeapFrameListener : public Leap::Listener {
+class LeapMotionImpl : public Sensor {
 	public:
-		 void onFrame(const Leap::Controller&);
+		enum LeapHand { LEFT, RIGHT };
 
-		LeapFrameListener(Sensor *leap, Controller *controller);
-	private:
-		void processHands(Leap::Hand *left, Leap::Hand *right);
-
-		Sensor *kJSensor;
-		Controller *kController;
-	};
-
-	class LeapMotionImpl : public Sensor {
-	public:
 		static const float LeapMeasurmentScalingFactor;
+		static const float LeapConfidence;
+
 		bool start();
+		void processLeapFrame(Leap::Frame frame);
 
 		LeapMotionImpl(SceneGraphNode *parent, Controller *controller);
 		~LeapMotionImpl();
 	private:
 		Leap::Listener *kFrameListener;
 		Leap::Controller *kLeapController;
+
+		int kRightHandId;
+		int kLeftHandId;
+		int kRightFingerIds[5];
+		int kLeftFingerIds[5];
+
+		JointFusionData kJointData[Bone::JOINT_COUNT];
+
+		void processHand(Leap::Hand hand, LeapHand whichHand);
+		void processFingers(Leap::Hand *hand, Bone::BoneId fingerOne,
+				JointFusionData *jointData[Bone::JOINT_COUNT]);
+		void clearJointData();
+	};
+
+	class LeapFrameListener : public Leap::Listener {
+	public:
+		 void onFrame(const Leap::Controller&);
+
+		LeapFrameListener(LeapMotionImpl *wrapper);
+	private:
+		LeapMotionImpl *kLeapWrapper;
 	};
 };
 
