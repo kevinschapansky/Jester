@@ -24,9 +24,18 @@ namespace jester {
 class LeapMotionImpl : public Sensor {
 	public:
 		enum LeapHand { LEFT, RIGHT };
-
 		static const float LeapMeasurmentScalingFactor;
 		static const float LeapConfidence;
+
+		typedef struct FingerAngle {
+			Leap::Finger finger;
+			float angle;
+		} FingerAngle;
+
+		typedef struct FingerData {
+			int id;
+			float length;
+		} FingerData;
 
 		bool start();
 		void processLeapFrame(Leap::Frame frame);
@@ -39,14 +48,14 @@ class LeapMotionImpl : public Sensor {
 
 		int kRightHandId;
 		int kLeftHandId;
-		int kRightFingerIds[5];
-		int kLeftFingerIds[5];
+		FingerData kRightFingerIds[5];
+		FingerData kLeftFingerIds[5];
 
 		JointFusionData kJointData[Bone::JOINT_COUNT];
 
 		void processHand(Leap::Hand hand, LeapHand whichHand);
-		void processFingers(Leap::Hand *hand, Bone::BoneId fingerOne,
-				JointFusionData *jointData[Bone::JOINT_COUNT]);
+		void processFingers(Leap::Hand hand, Bone::BoneId fingerOne, LeapHand whichHand);
+		void setFingerInJointData(Leap::Finger finger, Bone::BoneId bone);
 		void clearJointData();
 	};
 

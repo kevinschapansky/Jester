@@ -4,7 +4,9 @@ const float jester::LeapMotionImpl::LeapMeasurmentScalingFactor = 1000.f;
 const float jester::LeapMotionImpl::LeapConfidence = 0.7;
 
 bool finger_count_comparator (Leap::Hand a, Leap::Hand b) { return a.fingers().count() > b.fingers().count(); }
-bool x_coordinate_comparator (Leap::Hand a, Leap::Hand b) { return a.palmPosition()[0] < b.palmPosition()[0]; }
+bool hand_x_coordinate_comparator (Leap::Hand a, Leap::Hand b) { return a.palmPosition()[0] < b.palmPosition()[0]; }
+bool left_hand_finger_x_coordinate_comparator (Leap::Finger a, Leap::Finger b) { return a.tipPosition()[0] > b.tipPosition()[0]; }
+bool right_hand_finger_x_coordinate_comparator (Leap::Finger a, Leap::Finger b) { return a.tipPosition()[0] < b.tipPosition()[0]; }
 
 jester::LeapFrameListener::LeapFrameListener(jester::LeapMotionImpl *wrapper) : Leap::Listener() {
 	kLeapWrapper = wrapper;
@@ -53,7 +55,7 @@ void jester::LeapMotionImpl::processLeapFrame(Leap::Frame frame) {
 	hands.erase(hands.begin() + std::min((int) hands.size(), neededHands), hands.end());
 
 	//sort by x coordinate
-	std::sort(hands.begin(), hands.end(), x_coordinate_comparator);
+	std::sort(hands.begin(), hands.end(), hand_x_coordinate_comparator);
 
 	if (hands.size() == 0 || neededHands == 0) { //if we have or need no hands, do nothing here
 	} else if (neededHands > (int) hands.size()) { //if we need two and only have 1
@@ -92,28 +94,95 @@ void jester::LeapMotionImpl::processLeapFrame(Leap::Frame frame) {
 
 void jester::LeapMotionImpl::processHand(Leap::Hand hand, LeapHand whichHand) {
 	Bone::JointId toSet = (whichHand == LeapHand::LEFT ? Bone::JointId::WRIST_L : Bone::JointId::WRIST_R);
+	Bone::BoneId firstFinger = (whichHand == LeapHand::LEFT ? Bone::BoneId::PHALANX_L_1 : Bone::BoneId::PHALANX_R_1);
 
 	kJointData[toSet].confidence = LeapConfidence;
 	kJointData[toSet].position = new glm::vec3(hand.palmPosition()[0] / LeapMeasurmentScalingFactor,
 			hand.palmPosition()[1] / LeapMeasurmentScalingFactor,
 			hand.palmPosition()[2] / LeapMeasurmentScalingFactor);
+
+	glm::vec3 handVector(hand.direction()[0], hand.direction()[1], hand.direction()[2]);
+	glm::vec3 straight(0, 0, -1);
+
+	processFingers(hand, firstFinger, whichHand);
 }
 
-void jester::LeapMotionImpl::processFingers(Leap::Hand *hand, Bone::BoneId fingerOne,
-		JointFusionData *jointData[Bone::JOINT_COUNT]) {
-	/*
-	Leap::FingerList fingers = hand->fingers();
-	glm::vec3 handVector(hand->direction()[0], hand->direction()[1], hand->direction()[2]);
-	glm::vec3 handNormal(hand->palmNormal()[0], hand->palmNormal()[1], hand->palmNormal()[2]);
-	glm::vec3 handPosition(hand->palmPosition()[0], hand->palmPosition()[1], hand->palmPosition()[2])
+void jester::LeapMotionImpl::processFingers(Leap::Hand hand, Bone::BoneId fingerOne, LeapHand whichHand) {
+	Leap::FingerList fingerList = hand.fingers();
+	std::vector<Leap::Finger> fingers;
+	FingerData *fingerIds = (whichHand == LeapHand::LEFT ? kLeftFingerIds : kRightFingerIds);
+	bool fingersFound[] = {false, false, false, false, false};
 
-	for (Leap::FingerList::const_iterator fingerIter = fingers.begin(); fingerIter != fingers.end(); fingerIter++) {
-		Leap::Finger curFinger = *fingerIter;
-		glm::vec3 fingerVector(curFinger.direction()[0], 0, curFinger.direction()[2]);
-
-		printf("Finger %d: %f\n", curFinger.id(), glm::degrees(glm::acos(glm::dot(glm::normalize(fingerVector), handVector))));
+	//project finger tip positions onto palm plane and calculate angle
+	for (Leap::FingerList::const_iterator fingerIter = fingerList.begin(); fingerIter != fingerList.end(); fingerIter++) {
+		fingers.push_back(*fingerIter);
 	}
-	printf("\n");*/
+
+	//if this is the first time we've seen the full hand, calibrate the finger lengths
+	if (fingerIds[0].id == -1 && fingers.size() == 5) {
+		if (whichHand == LeapHand::LEFT)
+			std::sort(fingers.begin(), fingers.end(), left_hand_finger_x_coordinate_comparator);
+		else if (whichHand == LeapHand::RIGHT)
+			std::sort(fingers.begin(), fingers.end(), right_hand_finger_x_coordinate_comparator);
+		else
+			return;
+		fingersFound[0] = fingersFound[1] = fingersFound[2] = fingersFound[3] = fingersFound[4] = true;
+
+		for (int i = 0; i < 5; i++) {
+			fingerIds[i].id = fingers[i].id();
+			fingerIds[i].length = fingers[i].length();
+		}
+	} else if (fingerIds[0].id == -1)
+		return;
+
+	//search for all of the known finger ids
+	for (unsigned int i = 0; i < 5; i++) {
+		for (unsigned int j = 0; j < fingers.size(); j++) {
+			if (fingers[j].id() == fingerIds[i].id) {
+				fingersFound[i] = true;
+				setFingerInJointData(fingers[j], static_cast<Bone::BoneId>(fingerOne + i));
+				fingers.erase(fingers.begin() + j);
+			}
+		}
+	}
+
+	//match all unclaimed fingers based on closest size
+	for (unsigned int i = 0; i < fingers.size(); i++) {
+		float closestLengthDelta = FLT_MAX;
+		int closestFingerIx = -1;
+
+		for (int j = 0; j < 5; j++) {
+			if (!fingersFound[j]) {
+				float lengthDelta = abs(fingerIds[j].length - fingers[i].length());
+
+				if (lengthDelta < closestLengthDelta) {
+					closestLengthDelta = lengthDelta;
+					closestFingerIx = j;
+				}
+			}
+		}
+		if (closestFingerIx >= 0) {
+			fingersFound[closestFingerIx] = true;
+			fingerIds[closestFingerIx].id = fingers[i].id();
+			setFingerInJointData(fingers[i], static_cast<Bone::BoneId>(fingerOne + closestFingerIx));
+		}
+	}
+}
+
+void jester::LeapMotionImpl::setFingerInJointData(Leap::Finger finger, Bone::BoneId bone) {
+	std::pair<Bone::JointId, Bone::JointId> joints = Bone::BoneToJointsMap.find(bone)->second;
+	glm::vec3 fingerTip(finger.tipPosition()[0], finger.tipPosition()[1], finger.tipPosition()[2]);
+	glm::vec3 fingerDir(finger.direction()[0], finger.direction()[1], finger.direction()[2]);
+	float fingerLength = finger.length();
+
+	fingerDir = glm::normalize(fingerDir);
+	glm::vec3 fingerStart = fingerTip - fingerLength * fingerDir;
+
+	glm::vec3 *boneStart = new glm::vec3(fingerStart / LeapMeasurmentScalingFactor);
+	glm::vec3 *boneEnd = new glm::vec3(fingerTip / LeapMeasurmentScalingFactor);
+	kJointData[joints.first].position = boneStart;
+	kJointData[joints.second].position = boneEnd;
+	kJointData[joints.first].confidence = kJointData[joints.second].confidence = LeapConfidence;
 }
 
 void jester::LeapMotionImpl::clearJointData() {
@@ -135,8 +204,8 @@ jester::LeapMotionImpl::LeapMotionImpl(SceneGraphNode *parent, Controller *contr
 	kLeapController = new Leap::Controller();
 	kRightHandId = -1;
 	kLeftHandId = -1;
-	kRightFingerIds[0] = kRightFingerIds[1] = kRightFingerIds[2] = kRightFingerIds[3] = kRightFingerIds[4] = -1;
-	kLeftFingerIds[0] = kLeftFingerIds[1] = kLeftFingerIds[2] = kLeftFingerIds[3] = kLeftFingerIds[4] = -1;
+	kRightFingerIds[0].id = kRightFingerIds[1].id = kRightFingerIds[2].id = kRightFingerIds[3].id = kRightFingerIds[4].id = -1;
+	kLeftFingerIds[0].id = kLeftFingerIds[1].id = kLeftFingerIds[2].id = kLeftFingerIds[3].id = kLeftFingerIds[4].id = -1;
 
 	printf("Connecting to Leap Controller\n");
 	while (!kLeapController->isConnected()) {}
