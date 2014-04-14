@@ -6,6 +6,7 @@
 
 #include <glm/vec3.hpp>
 #include <map>
+#include <mutex>
 
 namespace jester {
 	class Bone : public SceneGraphNode {

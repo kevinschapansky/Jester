@@ -4,7 +4,7 @@
 #include "Controller.h"
 #include "PrimeSenseCarmineFactory.h"
 #include "LeapMotionFactory.h"
-#include "DataFusionModule.h"
+#include "LeapCarmineFuser.h"
 #include "Bone.h"
 #include "GLSL_helper.h"
 #include "GeometryCreator.h"
@@ -65,19 +65,23 @@ public:
 	static const int NUM_BONES = 16;
 
 	SkeletonVisualizer(int *argc, char **argv) {
-		kController = new jester::Controller(jester::DataFusionModule::FusionAlgorithm::PASS_THROUGH);
+		kFuser = new jester::LeapCarmineFuser();
+		kController = new jester::Controller(kFuser);
 
 		kController->init();
 		kScene = kController->getScene();
+		kFuser->setSceneRoot(kScene);
 
 		#ifndef NO_CARMINE
 			kCarmine = jester::PrimeSenseCarmineFactory::CreateCarmineSensor(kScene, kController);
+			kFuser->setCarmine(kCarmine);
 		#endif 
 
 		#ifndef NO_LEAP
 			kLeap = jester::LeapMotionFactory::CreateLeapSensor(kScene, kController);
 			kLeap->setOrientation(glm::angleAxis(3.14f, glm::vec3(0, 1, 0)));
 			kLeap->setPosition(glm::vec3(0, 1, 0.5f));
+			kFuser->setLeap(kLeap);
 		#endif
 
 		glutInit(argc, argv);
@@ -224,6 +228,7 @@ public:
 
 private:
 	jester::Controller *kController;
+	jester::LeapCarmineFuser *kFuser;
 	jester::Scene *kScene;
 	jester::Sensor *kCarmine;
 	jester::Sensor *kLeap;

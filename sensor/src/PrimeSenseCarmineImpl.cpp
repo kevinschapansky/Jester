@@ -82,6 +82,8 @@ jester::PrimeSenseCarmineImpl::PrimeSenseCarmineImpl(SceneGraphNode *parent, Con
 
 	nite::NiTE::initialize();
 	niteRc = kUserTracker.create();
+	kDataWanted = false;
+	kUpdateThread = NULL;
 
 	if (niteRc != nite::STATUS_OK)
 	{

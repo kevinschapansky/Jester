@@ -31,14 +31,12 @@ namespace jester {
 
 	class DataFusionModule {
 	public:
-		enum FusionAlgorithm {
-			PASS_THROUGH
-		} ;
-		
 		virtual void newData(Sensor *sensor, BoneFusionData data[Bone::BONE_COUNT]) = 0;
 		virtual void newData(Sensor *sensor, JointFusionData data[Bone::JOINT_COUNT]) = 0;
 		virtual void setDefaultSkeleton();
 		void setSkeletonBones(FusionBone *bones[Bone::JOINT_COUNT]);
+
+		virtual ~DataFusionModule();
 	protected:
 		std::map<Bone::BoneId, FusionBone *> kBones;
 

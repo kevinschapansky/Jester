@@ -18,10 +18,9 @@ namespace jester {
 		void suggestBoneInfo(Sensor *sensor, BoneFusionData data[Bone::BONE_COUNT]);
 		void suggestJointInfo(Sensor *sensor, JointFusionData data[Bone::JOINT_COUNT]);
 
-		Controller(DataFusionModule::FusionAlgorithm algorithm);
+		Controller(DataFusionModule *fusionModule);
 		~Controller();
 	private:
-		DataFusionModule::FusionAlgorithm kAlgorithm;
 		std::clock_t kStartClock;
 		Scene *kScene;
 		DataFusionModule *kFusionModule;

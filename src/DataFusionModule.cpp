@@ -88,3 +88,5 @@ void jester::DataFusionModule::setBoneDataFromEndpoints(SceneGraphNode *curStart
 	bone->setPosition(glm::vec3(invParentWorldTransform * glm::vec4(worldStartPosition, 1)), confidence);
 	bone->setLength(glm::distance(worldStartPosition, worldEndPosition));
 }
+
+jester::DataFusionModule::~DataFusionModule() {}

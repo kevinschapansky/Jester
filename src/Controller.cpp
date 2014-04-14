@@ -2,10 +2,10 @@
 #include "PassThroughFuser.h"
 
 
-jester::Controller::Controller(DataFusionModule::FusionAlgorithm algorithm) {
+jester::Controller::Controller(DataFusionModule *fusionModule) {
 	kStartClock = std::clock();
 	kScene = NULL;
-	kAlgorithm = algorithm;
+	kFusionModule = fusionModule;
 }
 
 jester::Controller::~Controller() {
@@ -18,14 +18,7 @@ void jester::Controller::init() {
 		delete kScene;
 	}
 
-	switch (kAlgorithm) {
-	case DataFusionModule::PASS_THROUGH :
-		kFusionModule = new PassThroughFuser();
-		kScene = new Scene(kFusionModule);
-		break;
-	default :
-		printf("SHITS BROKE\n");
-	};
+	kScene = new Scene(kFusionModule);
 }
 
 jester::Scene* jester::Controller::getScene() {
