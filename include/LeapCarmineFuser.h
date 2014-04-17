@@ -46,6 +46,8 @@ namespace jester {
 		float kSkeletonDelayTime;
 		std::mutex kHistoryMutex;
 
+		bool kHasHadC7Lock;
+
 		JointPositionHistory *kJointHistory;
 		int kNewestInfo;
 

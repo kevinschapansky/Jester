@@ -11,14 +11,6 @@ namespace jester {
 	public:
 		Bone* getBone(Bone::BoneId bone);
 		Bone* getRootBone();
-
-		static SceneGraphNode* getGraphRoot(SceneGraphNode *graphMember) {
-			SceneGraphNode *curNode = graphMember;
-
-			while (curNode != NULL && curNode->getParent() != NULL)
-				curNode = curNode->getParent();
-			return curNode;
-		};
 		
 		Scene(DataFusionModule *fuser);
 		~Scene();

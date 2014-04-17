@@ -22,7 +22,7 @@ extern "C" void KeyDown(unsigned char key, int x, int y);
 extern "C" void KeyUp(unsigned char key, int x, int y);
 extern "C" void MousePosition(int x, int y);
 
-#define NO_CARMINE
+//#define NO_CARMINE
 //#define NO_LEAP
 
 class SkeletonVisualizer {
@@ -74,13 +74,17 @@ public:
 
 		#ifndef NO_CARMINE
 			kCarmine = jester::PrimeSenseCarmineFactory::CreateCarmineSensor(kScene, kController);
+			glm::quat carmineOrientation = glm::angleAxis(3.14f, glm::vec3(0, 1, 0));
+			carmineOrientation = glm::rotate(carmineOrientation, 3.14f/4.f, glm::vec3(1, 0, 0));
+			kCarmine->setOrientation(carmineOrientation);
+			kCarmine->setPosition(glm::vec3(0, .9144f, .7112f));
 			kFuser->setCarmine(kCarmine);
 		#endif 
 
 		#ifndef NO_LEAP
 			kLeap = jester::LeapMotionFactory::CreateLeapSensor(kScene, kController);
 			kLeap->setOrientation(glm::angleAxis(3.14f, glm::vec3(0, 1, 0)));
-			kLeap->setPosition(glm::vec3(0, 1, 0.5f));
+			kLeap->setPosition(glm::vec3(0, .2286f, 0.9398f));
 			kFuser->setLeap(kLeap);
 		#endif
 
