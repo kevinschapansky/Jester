@@ -87,26 +87,20 @@ void jester::LeapCarmineFuser::updateSkeleton() {
 		bestSkeleton.clear();
 		for (int jointId = 0; jointId < Bone::JOINT_COUNT; jointId++) {
 			int curInfo = kNewestInfo;
+			int backSteps = 0;
 
-			while (abs(kNewestInfo - curInfo) < MaxRetrievalDistance &&
+			while (backSteps < MaxRetrievalDistance &&
 					!(kJointHistory[curInfo].jointData.count(Bone::intToJointId(jointId)))) {
 				curInfo -= 1;
 				curInfo = (curInfo % HistoryLength + HistoryLength) % HistoryLength;
+				backSteps++;
 			}
 
 			if (kJointHistory[curInfo].jointData.count(Bone::intToJointId(jointId))) {
 				bestSkeleton.insert(*(kJointHistory[curInfo].jointData.find(Bone::intToJointId(jointId))));
 			}
 		}
-/*
-		if (!kHasHadC7Lock) {
-			if (bestSkeleton[Bone::JointId::C7].position != NULL) {
-				kHasHadC7Lock = true;
-			}
-		} else if (bestSkeleton[Bone::JointId::C7].position == NULL) {
-			printf("Lost C7 %d!\n", (int) std::clock());
-		}
-*/
+
 		setSkeletonFromJoints(kSceneRoot, bestSkeleton);
 		kHistoryMutex.unlock();
 		std::this_thread::sleep_for(std::chrono::milliseconds((int) kSkeletonDelayTime));
