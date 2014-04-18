@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <thread>
 #include <chrono>
+#include <map>
 
 #include <glm/gtc/quaternion.hpp>
 #include <glm/vec3.hpp>

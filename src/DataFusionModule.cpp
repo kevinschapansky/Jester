@@ -2,12 +2,14 @@
 
 void jester::DataFusionModule::setDefaultSkeleton() {
 	SceneGraphNode *sceneRoot = kBones.find(Bone::ROOT)->second->getParent();
-	JointFusionData data[Bone::JOINT_COUNT];
+	std::map<Bone::JointId, JointFusionData> data;
 
 	for (int i = 0; i < Bone::JOINT_COUNT; i++) {
-		data[i].id = Bone::intToJointId(i);
-		data[i].confidence = 0;
-		data[i].position = new glm::vec3(Bone::DefaultPositions[i]);
+		JointFusionData nextJoint;
+		nextJoint.id = Bone::intToJointId(i);
+		nextJoint.confidence = 0;
+		nextJoint.position = glm::vec3(Bone::DefaultPositions[i]);
+		data.insert(std::pair<Bone::JointId, JointFusionData>(Bone::intToJointId(i), nextJoint));
 	}
 
 	setSkeletonFromJoints(sceneRoot, data);
@@ -23,36 +25,46 @@ void jester::DataFusionModule::setDefaultSkeleton() {
 
 		bone->setDefaultEndpoints(parentSpaceStart - parentBoneEndpoint, parentSpaceEnd - parentBoneEndpoint);
 	}
-
-	for (int i = 0; i < Bone::JOINT_COUNT; i++)
-		delete data[i].position;
 }
 
-void jester::DataFusionModule::setSkeletonFromJoints(SceneGraphNode *positionParent, JointFusionData joints[Bone::JOINT_COUNT]) {
+void jester::DataFusionModule::setSkeletonFromJoints(SceneGraphNode *positionParent, std::map<Bone::JointId, JointFusionData> joints) {
 
 	for (unsigned int i = 0; i < Bone::BONE_COUNT; i++) {
 		Bone::BoneId id = Bone::intToBoneId(i);
 		std::pair<Bone::JointId, Bone::JointId> jointIds = Bone::BoneToJointsMap.find(id)->second;
-		glm::vec3 *startPos = joints[jointIds.first].position;
-		glm::vec3 *endPos = joints[jointIds.second].position;
-		float confidence = std::min(joints[jointIds.first].confidence, joints[jointIds.second].confidence);
+		bool hasStart = (joints.count(jointIds.first));
+		bool hasEnd = (joints.count(jointIds.second));
+		glm::vec3 startPos;
+		glm::vec3 endPos;
+		float confidence = FLT_MAX;
 		FusionBone *bone = kBones.find(id)->second;
 
+		if (hasStart) {
+			startPos = joints.find(jointIds.first)->second.position;
+			confidence = std::min(confidence, joints.find(jointIds.first)->second.confidence);
+		} else
+			confidence = 0;
 
-		if (startPos == NULL && endPos == NULL) {
+		if (hasEnd) {
+			endPos = joints.find(jointIds.second)->second.position;
+			confidence = std::min(confidence, joints.find(jointIds.second)->second.confidence);
+		} else
+			confidence = 0;
+
+		if (!hasStart && !hasEnd) {
 			setBoneDataFromEndpoints(bone->getParent(), bone->getParent(), bone,
 					bone->getDefaultJointPositions().first + glm::vec3(0, 0, ((Bone*) bone->getParent())->getLength()),
 					bone->getDefaultJointPositions().second + glm::vec3(0, 0, ((Bone*) bone->getParent())->getLength()), 0);
-		} else if (startPos == NULL) {
+		} else if (!hasStart) {
 			setBoneDataFromEndpoints(bone->getParent(), positionParent, bone,
 					bone->getDefaultJointPositions().first + glm::vec3(0, 0, ((Bone*) bone->getParent())->getLength()),
-					*endPos, 0);
-		} else if (endPos == NULL) {
+					endPos, 0);
+		} else if (!hasEnd) {
 			setBoneDataFromEndpoints(positionParent, bone, bone,
-					*startPos,
+					startPos,
 					bone->getDefaultJointPositions().second + glm::vec3(0, 0, ((Bone*) bone->getParent())->getLength()), 0);
 		} else {
-			setBoneDataFromEndpoints(positionParent, positionParent, bone, *startPos, *endPos, confidence);
+			setBoneDataFromEndpoints(positionParent, positionParent, bone, startPos, endPos, confidence);
 		}
 	}
 }

@@ -75,7 +75,7 @@ public:
 		#ifndef NO_CARMINE
 			kCarmine = jester::PrimeSenseCarmineFactory::CreateCarmineSensor(kScene, kController);
 			glm::quat carmineOrientation = glm::angleAxis(3.14f, glm::vec3(0, 1, 0));
-			carmineOrientation = glm::rotate(carmineOrientation, 3.14f/4.f, glm::vec3(1, 0, 0));
+			carmineOrientation = glm::rotate(carmineOrientation, 3.14f/16.f, glm::vec3(1, 0, 0));
 			kCarmine->setOrientation(carmineOrientation);
 			kCarmine->setPosition(glm::vec3(0, .9144f, .7112f));
 			kFuser->setCarmine(kCarmine);

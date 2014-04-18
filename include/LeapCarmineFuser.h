@@ -7,6 +7,7 @@
 #include <chrono>
 #include <mutex>
 #include <cstring>
+#include <map>
 
 #include "DataFusionModule.h"
 #include "Sensor.h"
@@ -16,8 +17,8 @@
 namespace jester {
 	class LeapCarmineFuser : public DataFusionModule {
 	public:
-		void newData(Sensor *sensor, BoneFusionData data[Bone::BONE_COUNT]);
-		void newData(Sensor *sensor, JointFusionData data[Bone::JOINT_COUNT]);
+		void newData(Sensor *sensor, std::map<Bone::BoneId, BoneFusionData> data);
+		void newData(Sensor *sensor, std::map<Bone::JointId, JointFusionData> data);
 
 		void setCarmine(Sensor *carmine);
 		void setLeap(Sensor *leap);
@@ -30,7 +31,7 @@ namespace jester {
 			std::clock_t timestamp;
 			bool leapData;
 			bool carmineData;
-			JointFusionData jointData[Bone::JOINT_COUNT];
+			std::map<Bone::JointId, JointFusionData> jointData;
 		} JointPositionHistory;
 
 		static const int HistoryLength;
@@ -59,9 +60,7 @@ namespace jester {
 		void updateSkeleton();
 		void advanceHistoryFrame();
 		void checkTimeout();
-		void fuseHandPositions(JointFusionData *carmineJoints, JointFusionData *leapJoints);
-		void insertLeapJoints(JointFusionData *leapJoints);
-		void insertCarmineJoints(JointFusionData *carmineJoints);
+		void insertJoints(std::map<Bone::JointId, JointFusionData> joints, glm::mat4 jointWorldTransform);
 		void launchThreads();
 	};
 };

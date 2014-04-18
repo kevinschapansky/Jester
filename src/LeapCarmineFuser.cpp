@@ -7,30 +7,19 @@ const int jester::LeapCarmineFuser::DataFrameExpirationMs = 200;
 const int jester::LeapCarmineFuser::JointsPerHand = 10;
 const int jester::LeapCarmineFuser::MaxRetrievalDistance = 10;
 
-void jester::LeapCarmineFuser::newData(Sensor *sensor, BoneFusionData data[Bone::BONE_COUNT]) {
+void jester::LeapCarmineFuser::newData(Sensor *sensor, std::map<Bone::BoneId, BoneFusionData> data) {
 	printf("This implementation of data fusion is not expecting raw bone fusion data.\nExiting...\n");
 	exit(EXIT_FAILURE);
 }
 
-void jester::LeapCarmineFuser::newData(Sensor *sensor, JointFusionData data[Bone::JOINT_COUNT]) {
-	JointFusionData *jointData;
-
+void jester::LeapCarmineFuser::newData(Sensor *sensor, std::map<Bone::JointId, JointFusionData> data) {
 	kHistoryMutex.lock();
-	jointData = kJointHistory[kNewestInfo].jointData;
 
 	if (sensor == kLeap) {
-		if (kJointHistory[kNewestInfo].carmineData) {
-			fuseHandPositions(jointData, data);
-		} else {
-			insertLeapJoints(data);
-		}
+		insertJoints(data, kLeap->getWorldTransform());
 		kJointHistory[kNewestInfo].leapData = true;
 	} else if (sensor == kCarmine) {
-		if (kJointHistory[kNewestInfo].leapData) {
-			fuseHandPositions(data, jointData);
-		} else {
-			insertCarmineJoints(data);
-		}
+		insertJoints(data, kCarmine->getWorldTransform());
 		kJointHistory[kNewestInfo].carmineData = true;
 	} else {
 		printf("Unregistered sensor sending data! Ignoring...\n");
@@ -39,6 +28,17 @@ void jester::LeapCarmineFuser::newData(Sensor *sensor, JointFusionData data[Bone
 	if (kJointHistory[kNewestInfo].carmineData && kJointHistory[kNewestInfo].leapData)
 		advanceHistoryFrame();
 	kHistoryMutex.unlock();
+}
+
+void jester::LeapCarmineFuser::insertJoints(std::map<Bone::JointId, JointFusionData> joints, glm::mat4 jointWorldTransform) {
+	for (int i = 0; i < Bone::JOINT_COUNT; i++) {
+		if (joints.find(Bone::intToJointId(i)) != joints.end()) {
+			std::pair<Bone::JointId, JointFusionData> joint = *(joints.find(Bone::intToJointId(i)));
+
+			joint.second.position = glm::vec3(jointWorldTransform * glm::vec4(joint.second.position, 1.f));
+			kJointHistory[kNewestInfo].jointData.insert(joint);
+		}
+	}
 }
 
 void jester::LeapCarmineFuser::setCarmine(Sensor *carmine) {
@@ -67,11 +67,8 @@ jester::LeapCarmineFuser::LeapCarmineFuser() {
 	kHasHadC7Lock = false;
 
 	for (int historyIx = 0; historyIx < HistoryLength; historyIx++) {
-		for (int jointIx = 0; jointIx < Bone::JOINT_COUNT; jointIx++) {
-			kJointHistory[historyIx].jointData[jointIx].position = NULL;
-			kJointHistory[historyIx].jointData[jointIx].confidence = 0;
-			kJointHistory[historyIx].jointData[jointIx].id = Bone::intToJointId(jointIx);
-		}
+		kJointHistory[historyIx].carmineData = kJointHistory[historyIx].leapData = false;
+		kJointHistory[historyIx].jointData.clear();
 	}
 	kSkeletonUpdateThread = kFrameAdvanceThread = NULL;
 }
@@ -83,21 +80,25 @@ jester::LeapCarmineFuser::~LeapCarmineFuser() {
 }
 
 void jester::LeapCarmineFuser::updateSkeleton() {
-	JointFusionData bestSkeleton[Bone::JOINT_COUNT];
+	std::map<Bone::JointId, JointFusionData> bestSkeleton;
 
 	do {
 		kHistoryMutex.lock();
+		bestSkeleton.clear();
 		for (int jointId = 0; jointId < Bone::JOINT_COUNT; jointId++) {
 			int curInfo = kNewestInfo;
 
 			while (abs(kNewestInfo - curInfo) < MaxRetrievalDistance &&
-					kJointHistory[curInfo].jointData[jointId].position == NULL) {
+					!(kJointHistory[curInfo].jointData.count(Bone::intToJointId(jointId)))) {
 				curInfo -= 1;
 				curInfo = (curInfo % HistoryLength + HistoryLength) % HistoryLength;
 			}
-			bestSkeleton[jointId] = kJointHistory[curInfo].jointData[jointId];
-		}
 
+			if (kJointHistory[curInfo].jointData.count(Bone::intToJointId(jointId))) {
+				bestSkeleton.insert(*(kJointHistory[curInfo].jointData.find(Bone::intToJointId(jointId))));
+			}
+		}
+/*
 		if (!kHasHadC7Lock) {
 			if (bestSkeleton[Bone::JointId::C7].position != NULL) {
 				kHasHadC7Lock = true;
@@ -105,7 +106,7 @@ void jester::LeapCarmineFuser::updateSkeleton() {
 		} else if (bestSkeleton[Bone::JointId::C7].position == NULL) {
 			printf("Lost C7 %d!\n", (int) std::clock());
 		}
-
+*/
 		setSkeletonFromJoints(kSceneRoot, bestSkeleton);
 		kHistoryMutex.unlock();
 		std::this_thread::sleep_for(std::chrono::milliseconds((int) kSkeletonDelayTime));
@@ -118,12 +119,7 @@ void jester::LeapCarmineFuser::advanceHistoryFrame() {
 	kJointHistory[kNewestInfo].timestamp = std::clock();
 	kNewestInfo = (kNewestInfo + 1) % HistoryLength;
 
-	for (int jointIx = 0; jointIx < Bone::JOINT_COUNT; jointIx++) {
-		if (kJointHistory[kNewestInfo].jointData[jointIx].position != NULL) {
-			delete kJointHistory[kNewestInfo].jointData[jointIx].position;
-			kJointHistory[kNewestInfo].jointData[jointIx].position = NULL;
-		}
-	}
+	kJointHistory[kNewestInfo].jointData.clear();
 	kJointHistory[kNewestInfo].carmineData = false;
 	kJointHistory[kNewestInfo].leapData = false;
 }
@@ -136,65 +132,6 @@ void jester::LeapCarmineFuser::checkTimeout() {
 		advanceHistoryFrame();
 		kHistoryMutex.unlock();
 	} while (kContinueUpdating);
-}
-
-//assumes that mutex lock/unlock is handled by the calling function, otherwise
-//there will be concurrency problems.
-void jester::LeapCarmineFuser::fuseHandPositions(JointFusionData *carmineJoints, JointFusionData *leapJoints) {
-	if (carmineJoints[Bone::WRIST_L].position != NULL && leapJoints[Bone::WRIST_L].position != NULL &&
-			carmineJoints[Bone::WRIST_R].position != NULL && leapJoints[Bone::WRIST_R].position != NULL) {
-		float noSwitchDelta = glm::distance(*(carmineJoints[Bone::WRIST_L].position), *(leapJoints[Bone::WRIST_L].position)) +
-				glm::distance(*(carmineJoints[Bone::WRIST_R].position), *(leapJoints[Bone::WRIST_R].position));
-		float switchDelta = glm::distance(*(carmineJoints[Bone::WRIST_L].position), *(leapJoints[Bone::WRIST_R].position)) +
-				glm::distance(*(carmineJoints[Bone::WRIST_R].position), *(leapJoints[Bone::WRIST_L].position));
-
-
-		//if we see an improvement for switching the hands
-		if (noSwitchDelta - switchDelta > SwitchDelta && false) {
-			JointFusionData tempJoints[Bone::JOINT_COUNT];
-
-			memcpy(tempJoints, leapJoints, sizeof(JointFusionData) * Bone::JOINT_COUNT);
-			memcpy(&leapJoints[Bone::DISTAL_L_1], &tempJoints[Bone::DISTAL_R_1], sizeof(JointFusionData) * 5);
-			memcpy(&leapJoints[Bone::DISTAL_R_1], &tempJoints[Bone::DISTAL_L_1], sizeof(JointFusionData) * 5);
-			memcpy(&leapJoints[Bone::METACARPO_L_1], &tempJoints[Bone::METACARPO_R_1], sizeof(JointFusionData) * 5);
-			memcpy(&leapJoints[Bone::METACARPO_R_1], &tempJoints[Bone::METACARPO_L_1], sizeof(JointFusionData) * 5);
-			leapJoints[Bone::WRIST_L] = tempJoints[Bone::WRIST_R];
-			leapJoints[Bone::WRIST_R] = tempJoints[Bone::WRIST_L];
-		}
-	}
-	insertCarmineJoints(carmineJoints);
-	insertLeapJoints(leapJoints);
-}
-
-//Assumes the the finger joints never have anything inserted in-between them in the Bone::JointId enum
-void jester::LeapCarmineFuser::insertLeapJoints(JointFusionData *leapJoints) {
-	JointFusionData *positions = kJointHistory[kNewestInfo].jointData;
-
-	for (int jointIx = Bone::DISTAL_L_1; jointIx <= Bone::METACARPO_R_5; jointIx++) {
-		if (leapJoints[jointIx].position != NULL) {
-			positions[jointIx] = leapJoints[jointIx];
-			positions[jointIx].position = new glm::vec3(kLeap->getWorldTransform() * glm::vec4(*(leapJoints[jointIx].position), 1.f));
-		}
-	}
-
-	for (int jointIx = Bone::WRIST_L; jointIx <= Bone::WRIST_R; jointIx++) {
-		if (leapJoints[jointIx].position != NULL) {
-			positions[jointIx] = leapJoints[jointIx];
-			positions[jointIx].position = new glm::vec3(kLeap->getWorldTransform() * glm::vec4(*(leapJoints[jointIx].position), 1.f));
-		}
-	}
-}
-
-//Assumes that the upper torso joints (the carmine-sensed joints) all lie between HEAD and WRIST_R in Bone::JointId enum
-void jester::LeapCarmineFuser::insertCarmineJoints(JointFusionData *carmineJoints) {
-	JointFusionData *positions = kJointHistory[kNewestInfo].jointData;
-
-	for (int jointIx = Bone::HEAD; jointIx <= Bone::ANKLE_R; jointIx++) {
-		if (carmineJoints[jointIx].position != NULL) {
-			positions[jointIx] = carmineJoints[jointIx];
-			positions[jointIx].position = new glm::vec3(kCarmine->getWorldTransform() * glm::vec4(*(carmineJoints[jointIx].position), 1.f));
-		}
-	}
 }
 
 void jester::LeapCarmineFuser::launchThreads() {

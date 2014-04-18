@@ -3,6 +3,7 @@
 
 #include <ctime>
 #include <glm/vec3.hpp>
+#include <map>
 
 #include "Scene.h"
 #include "DataFusionModule.h"
@@ -15,8 +16,8 @@ namespace jester {
 		void init();
 		Scene *getScene();
 		long int getTimestamp();
-		void suggestBoneInfo(Sensor *sensor, BoneFusionData data[Bone::BONE_COUNT]);
-		void suggestJointInfo(Sensor *sensor, JointFusionData data[Bone::JOINT_COUNT]);
+		void suggestBoneInfo(Sensor *sensor, std::map<Bone::BoneId, BoneFusionData> data);
+		void suggestJointInfo(Sensor *sensor, std::map<Bone::JointId, JointFusionData> data);
 
 		Controller(DataFusionModule *fusionModule);
 		~Controller();

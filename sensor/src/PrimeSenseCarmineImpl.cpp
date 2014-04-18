@@ -31,25 +31,20 @@ void jester::PrimeSenseCarmineImpl::handleNewData(const nite::UserData &user) {
 	} else if (user.getSkeleton().getState() == nite::SKELETON_TRACKED) {
 		const nite::Skeleton &skeleton = user.getSkeleton();
 
-		jester::JointFusionData jointData[jester::Bone::JOINT_COUNT];
+		std::map<Bone::JointId, JointFusionData> jointData;
 
 		for (unsigned int i = 0; i < JOINT_COUNT; i++) {
 			const nite::SkeletonJoint &joint = skeleton.getJoint(intToNiteJoint(i));
 			const nite::Point3f &nitePos = joint.getPosition();
+			JointFusionData newJoint;
 
-			glm::vec3 *position = new glm::vec3(((float) nitePos.x) / DISTANCE_SCALING_FACTOR,
+			newJoint.position = glm::vec3(((float) nitePos.x) / DISTANCE_SCALING_FACTOR,
 								((float) nitePos.y) / DISTANCE_SCALING_FACTOR,
 								((float) nitePos.z) / DISTANCE_SCALING_FACTOR);
-			jointData[i].id = static_cast<jester::Bone::JointId>(i);
-			jointData[i].confidence = joint.getPositionConfidence();
-			jointData[i].position = position;
-		}
+			newJoint.id = static_cast<jester::Bone::JointId>(i);
+			newJoint.confidence = joint.getPositionConfidence();
 
-		//Fill the finger bones with null confidence
-		for (int i = JOINT_COUNT; i < jester::Bone::JOINT_COUNT; i++) {
-			jointData[i].id = static_cast<jester::Bone::JointId>(i);
-			jointData[i].confidence = 0.0;
-			jointData[i].position = NULL;
+			jointData.insert(std::pair<Bone::JointId, JointFusionData>(newJoint.id, newJoint));
 		}
 
 		const nite::Point3f &headPos =  skeleton.getJoint(nite::JOINT_HEAD).getPosition();
@@ -62,18 +57,20 @@ void jester::PrimeSenseCarmineImpl::handleNewData(const nite::UserData &user) {
 								((float) centerPos.y) / DISTANCE_SCALING_FACTOR,
 								((float) centerPos.z) / DISTANCE_SCALING_FACTOR);
 
-		jointData[jester::Bone::EXTEND_UP].id = jester::Bone::EXTEND_UP;
-		jointData[jester::Bone::EXTEND_UP].confidence = 1;
-		jointData[jester::Bone::EXTEND_UP].position = new glm::vec3(headGPos.x, headGPos.y + 0.2, headGPos.z);
+		JointFusionData upJoint;
+		upJoint.id = jester::Bone::EXTEND_UP;
+		upJoint.confidence = 1;
+		upJoint.position = glm::vec3(headGPos.x, headGPos.y + 0.2, headGPos.z);
 
-		jointData[jester::Bone::EXTEND_DOWN].id = jester::Bone::EXTEND_DOWN;
-		jointData[jester::Bone::EXTEND_DOWN].confidence = 1;
-		jointData[jester::Bone::EXTEND_DOWN].position = new glm::vec3(centerGPos.x, centerGPos.y - 0.3, centerGPos.z);
+		JointFusionData downJoint;
+		downJoint.id = jester::Bone::EXTEND_DOWN;
+		downJoint.confidence = 1;
+		downJoint.position = glm::vec3(centerGPos.x, centerGPos.y - 0.3, centerGPos.z);
+
+		jointData.insert(std::pair<Bone::JointId, JointFusionData>(upJoint.id, upJoint));
+		jointData.insert(std::pair<Bone::JointId, JointFusionData>(downJoint.id, downJoint));
 
 		kController->suggestJointInfo(this, jointData);
-
-		for (int i = 0; i < jester::Bone::JOINT_COUNT; i++)
-			delete jointData[i].position;
 	}
 }
 

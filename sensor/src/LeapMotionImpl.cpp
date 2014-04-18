@@ -95,14 +95,15 @@ void jester::LeapMotionImpl::processLeapFrame(Leap::Frame frame) {
 void jester::LeapMotionImpl::processHand(Leap::Hand hand, LeapHand whichHand) {
 	Bone::JointId toSet = (whichHand == LeapHand::LEFT ? Bone::JointId::WRIST_L : Bone::JointId::WRIST_R);
 	Bone::BoneId firstFinger = (whichHand == LeapHand::LEFT ? Bone::BoneId::PHALANX_L_1 : Bone::BoneId::PHALANX_R_1);
+	JointFusionData wristData;
 
-	kJointData[toSet].confidence = LeapConfidence;
-	kJointData[toSet].position = new glm::vec3(hand.palmPosition()[0] / LeapMeasurmentScalingFactor,
+	wristData.confidence = LeapConfidence;
+	wristData.position = glm::vec3(hand.palmPosition()[0] / LeapMeasurmentScalingFactor,
 			hand.palmPosition()[1] / LeapMeasurmentScalingFactor,
 			hand.palmPosition()[2] / LeapMeasurmentScalingFactor);
+	wristData.id = toSet;
 
-	glm::vec3 handVector(hand.direction()[0], hand.direction()[1], hand.direction()[2]);
-	glm::vec3 straight(0, 0, -1);
+	kJointData.insert(std::pair<Bone::JointId, JointFusionData>(toSet, wristData));
 
 	processFingers(hand, firstFinger, whichHand);
 }
@@ -174,25 +175,26 @@ void jester::LeapMotionImpl::setFingerInJointData(Leap::Finger finger, Bone::Bon
 	glm::vec3 fingerTip(finger.tipPosition()[0], finger.tipPosition()[1], finger.tipPosition()[2]);
 	glm::vec3 fingerDir(finger.direction()[0], finger.direction()[1], finger.direction()[2]);
 	float fingerLength = finger.length();
+	JointFusionData fingerStartData;
+	JointFusionData fingerEndData;
 
 	fingerDir = glm::normalize(fingerDir);
 	glm::vec3 fingerStart = fingerTip - fingerLength * fingerDir;
 
-	glm::vec3 *boneStart = new glm::vec3(fingerStart / LeapMeasurmentScalingFactor);
-	glm::vec3 *boneEnd = new glm::vec3(fingerTip / LeapMeasurmentScalingFactor);
-	kJointData[joints.first].position = boneStart;
-	kJointData[joints.second].position = boneEnd;
-	kJointData[joints.first].confidence = kJointData[joints.second].confidence = LeapConfidence;
+	glm::vec3 boneStart = glm::vec3(fingerStart / LeapMeasurmentScalingFactor);
+	glm::vec3 boneEnd = glm::vec3(fingerTip / LeapMeasurmentScalingFactor);
+	fingerStartData.position = boneStart;
+	fingerEndData.position = boneEnd;
+	fingerStartData.id = joints.first;
+	fingerEndData.id = joints.second;
+	fingerStartData.confidence = fingerEndData.confidence = LeapConfidence;
+
+	kJointData.insert(std::pair<Bone::JointId, JointFusionData>(joints.first, fingerStartData));
+	kJointData.insert(std::pair<Bone::JointId, JointFusionData>(joints.second, fingerEndData));
 }
 
 void jester::LeapMotionImpl::clearJointData() {
-	for (int i = 0; i < Bone::JOINT_COUNT; i++) {
-		if (kJointData[i].position != NULL)
-			delete kJointData[i].position;
-		kJointData[i].confidence = 0.f;
-		kJointData[i].position = NULL;
-		kJointData[i].id = Bone::intToJointId(i);
-	}
+	kJointData.clear();
 }
 
 bool jester::LeapMotionImpl::start() {
@@ -210,10 +212,6 @@ jester::LeapMotionImpl::LeapMotionImpl(SceneGraphNode *parent, Controller *contr
 	printf("Connecting to Leap Controller\n");
 	while (!kLeapController->isConnected()) {}
 	printf("Connection established\n");
-
-	//ensure proper init for avoiding bad deletes
-	for (int i = 0; i < Bone::JOINT_COUNT; i++)
-		kJointData[i].position = NULL;
 
 	kFrameListener = new LeapFrameListener(this);
 }

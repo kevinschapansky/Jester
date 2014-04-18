@@ -8,6 +8,7 @@
 #include <chrono>
 #include <vector>
 #include <algorithm>
+#include <map>
 
 #include <glm/gtc/quaternion.hpp>
 #include <glm/vec3.hpp>
@@ -51,7 +52,7 @@ class LeapMotionImpl : public Sensor {
 		FingerData kRightFingerIds[5];
 		FingerData kLeftFingerIds[5];
 
-		JointFusionData kJointData[Bone::JOINT_COUNT];
+		std::map<Bone::JointId, JointFusionData> kJointData;
 
 		void processHand(Leap::Hand hand, LeapHand whichHand);
 		void processFingers(Leap::Hand hand, Bone::BoneId fingerOne, LeapHand whichHand);
