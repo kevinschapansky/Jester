@@ -13,6 +13,10 @@ void jester::LeapCarmineFuser::newData(Sensor *sensor, std::map<Bone::BoneId, Bo
 }
 
 void jester::LeapCarmineFuser::newData(Sensor *sensor, std::map<Bone::JointId, JointFusionData> data) {
+	if (kFilters.size() == 0) {
+		initializeFilters();
+	}
+
 	kHistoryMutex.lock();
 
 	if (sensor == kLeap) {
@@ -34,8 +38,12 @@ void jester::LeapCarmineFuser::insertJoints(std::map<Bone::JointId, JointFusionD
 	for (int i = 0; i < Bone::JOINT_COUNT; i++) {
 		if (joints.find(Bone::intToJointId(i)) != joints.end()) {
 			std::pair<Bone::JointId, JointFusionData> joint = *(joints.find(Bone::intToJointId(i)));
+			std::map<Bone::JointId, JointParticleFilter *>::iterator filter = kFilters.find(Bone::intToJointId(i));
 
-			joint.second.position = glm::vec3(jointWorldTransform * glm::vec4(joint.second.position, 1.f));
+			if (filter != kFilters.end())
+				joint.second.position = (*filter).second->update(glm::vec3(jointWorldTransform * glm::vec4(joint.second.position, 1.f)));
+			else
+				joint.second.position = glm::vec3(jointWorldTransform * glm::vec4(joint.second.position, 1.f));
 			kJointHistory[kNewestInfo].jointData.insert(joint);
 		}
 	}
@@ -63,8 +71,6 @@ jester::LeapCarmineFuser::LeapCarmineFuser() {
 	kCarmine = kLeap = NULL;
 	kSceneRoot = NULL;
 	kJointHistory = new JointPositionHistory[HistoryLength];
-
-	kHasHadC7Lock = false;
 
 	for (int historyIx = 0; historyIx < HistoryLength; historyIx++) {
 		kJointHistory[historyIx].carmineData = kJointHistory[historyIx].leapData = false;
@@ -133,5 +139,13 @@ void jester::LeapCarmineFuser::launchThreads() {
 		kSkeletonUpdateThread = new std::thread(&jester::LeapCarmineFuser::updateSkeleton, this);
 		kFrameAdvanceThread = new std::thread(&jester::LeapCarmineFuser::checkTimeout, this);
 		kContinueUpdating = true;
+	}
+}
+
+void jester::LeapCarmineFuser::initializeFilters() {
+	for (int i = 0; i < Bone::BONE_COUNT; i++) {
+		Bone::JointId nextJoint = Bone::BoneToJointsMap.find(Bone::intToBoneId(i))->second.second;
+		std::pair<Bone::JointId, JointParticleFilter *> newFilter(nextJoint, new JointParticleFilter(kBones.find(Bone::intToBoneId(i))->second, 1000, 0.1));
+		kFilters.insert(newFilter);
 	}
 }

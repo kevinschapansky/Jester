@@ -22,7 +22,7 @@ extern "C" void KeyDown(unsigned char key, int x, int y);
 extern "C" void KeyUp(unsigned char key, int x, int y);
 extern "C" void MousePosition(int x, int y);
 
-//#define NO_CARMINE
+#define NO_CARMINE
 //#define NO_LEAP
 
 class SkeletonVisualizer {

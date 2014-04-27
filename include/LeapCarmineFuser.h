@@ -9,6 +9,8 @@
 #include <cstring>
 #include <map>
 
+#include "JointParticleFilter.h"
+
 #include "DataFusionModule.h"
 #include "Sensor.h"
 #include "Bone.h"
@@ -47,8 +49,6 @@ namespace jester {
 		float kSkeletonDelayTime;
 		std::mutex kHistoryMutex;
 
-		bool kHasHadC7Lock;
-
 		JointPositionHistory *kJointHistory;
 		int kNewestInfo;
 
@@ -56,12 +56,14 @@ namespace jester {
 		Sensor *kCarmine;
 		Sensor *kLeap;
 		SceneGraphNode *kSceneRoot;
+		std::map<Bone::JointId, JointParticleFilter *> kFilters;
 
 		void updateSkeleton();
 		void advanceHistoryFrame();
 		void checkTimeout();
 		void insertJoints(std::map<Bone::JointId, JointFusionData> joints, glm::mat4 jointWorldTransform);
 		void launchThreads();
+		void initializeFilters();
 	};
 };
 
