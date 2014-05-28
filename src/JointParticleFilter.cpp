@@ -4,20 +4,21 @@
 
 glm::vec3 jester::JointParticleFilter::update(glm::vec3 worldSpacePosition) {
 	glm::vec3 parentSpacePosition = glm::vec3(glm::inverse(kBone->getWorldTransform()) * glm::vec4(worldSpacePosition, 1));
+	glm::dvec3 mmPosition(parentSpacePosition * 1000.f);
 
 	moveParticles();
-	generateProbabilities(parentSpacePosition);
+	generateProbabilities(mmPosition);
 	resampleParticles();
-	return glm::vec3(kBone->getWorldTransform() * glm::vec4(getCurrentFilterPosition(), 1));
+	return glm::vec3(kBone->getWorldTransform() * glm::vec4(glm::vec3(getCurrentFilterPosition()), 1));
 }
 
-double jester::JointParticleFilter::gaussianProbability(double mean, double variance, double x) {
-	return exp(-1.0 * pow((mean - x), 2.0) / pow(variance, 2.0) / 2.0) / sqrt(2.0 * PI * pow(variance, 2.0));
+double jester::JointParticleFilter::gaussianProbability(double mean, double stdDev, double x) {
+	return exp(-1.0 * pow((mean - x), 2.0) / pow(stdDev, 2.0) / 2.0) / sqrt(2.0 * PI * pow(stdDev, 2.0));
 }
 
 void jester::JointParticleFilter::initializeParticles() {
 	std::default_random_engine generator;
-	std::uniform_int_distribution<int> endDist(-kBone->getLength() * 1000, kBone->getLength() * 1000);
+	std::uniform_int_distribution<int> endDist(-kBone->getLength() * 1000.f, kBone->getLength() * 1000.f);
 	std::uniform_int_distribution<int> angleDist(-100, 100);
 	std::uniform_int_distribution<int> rateDist(-1500, 1500);
 
@@ -28,10 +29,12 @@ void jester::JointParticleFilter::initializeParticles() {
 				(angleDist(generator) / 100.0),
 				(angleDist(generator) / 100.0)));
 		kParticles[i].position = glm::vec3(
-				(endDist(generator) / 1000.0),
-				(endDist(generator) / 1000.0),
-				(endDist(generator) / 1000.0));
+				endDist(generator),
+				endDist(generator),
+				endDist(generator));
 	}
+
+	kLastTimeStamp = std::clock();
 }
 
 void jester::JointParticleFilter::resampleParticles() {
@@ -63,36 +66,43 @@ void jester::JointParticleFilter::resampleParticles() {
 	kParticles = resampledParticles;
 }
 
-void jester::JointParticleFilter::generateProbabilities(glm::vec3 endpoint) {
-	for (int i = 0; i < kParticleCount; i++)
+void jester::JointParticleFilter::generateProbabilities(glm::dvec3 endpoint) {
+	double probSum = 0.0;
+
+	for (int i = 0; i < kParticleCount; i++) {
 		kParticles[i].probability = getProbability(kParticles[i], endpoint);
-}
-
-double jester::JointParticleFilter::getProbability(JointParticle particle, glm::vec3 sensedPosition) {
-	double probability = 1.0;
-
-	for (int i = 0; i < 3; i++) {
-		probability *= gaussianProbability(particle.position[i], kSensorNoise, sensedPosition[i]);
-
+		probSum += kParticles[i].probability;
 	}
 
-	return probability;
+	for (int i = 0; i < kParticleCount; i++) {
+		kParticles[i].probability = kParticles[i].probability / probSum;
+		if (kBone->getType() == Bone::RADIUS_L) {
+			printf("Particle %d: %f\n", i, kParticles[i].probability);
+		}
+	}
+}
+
+double jester::JointParticleFilter::getProbability(JointParticle particle, glm::dvec3 sensedPosition) {
+	return gaussianProbability(0.0, kSensorNoise, glm::distance(sensedPosition, particle.position));
 }
 
 void jester::JointParticleFilter::moveParticles() {
-	//Do nothing for now, possibly investigate continue movement path
+	std::time_t currentTime = std::clock();
+	double secondsElapsed = (double) (currentTime - kLastTimeStamp) / CLOCKS_PER_SEC;
+
+	for (int i = 0; i < kParticleCount; i++)
+		kParticles[i].position += kParticles[i].movementVector * kParticles[i].movementRate * secondsElapsed;
 }
 
-glm::vec3 jester::JointParticleFilter::getCurrentFilterPosition() {
-	glm::vec3 position(0.0);
+glm::dvec3 jester::JointParticleFilter::getCurrentFilterPosition() {
+	glm::dvec3 position(0.0);
 
 	for (int i = 0; i < kParticleCount; i++) {
-		position += kParticles[i].position;
+		position = position + kParticles[i].position;
 	}
 
-	position.x = position.x / kParticleCount;
-	position.y = position.y / kParticleCount;
-	position.z = position.z / kParticleCount;
+	position = position / (double) kParticleCount;
+	position = position / 1000.0;
 
 	return position;
 }

@@ -2,10 +2,13 @@
 #include "PassThroughFuser.h"
 
 
-jester::Controller::Controller(DataFusionModule *fusionModule) {
+jester::Controller::Controller(DataFusionModuleFactory *fusionModuleFactory) {
 	kStartClock = std::clock();
 	kScene = NULL;
-	kFusionModule = fusionModule;
+	kFusionModule = fusionModuleFactory->CreateFusionModule();
+	init();
+
+	kFusionModule->setSceneRoot(kScene);
 }
 
 jester::Controller::~Controller() {
@@ -38,4 +41,12 @@ void jester::Controller::suggestBoneInfo(Sensor *sensor, std::map<Bone::BoneId, 
 		
 void jester::Controller::suggestJointInfo(Sensor *sensor, std::map<Bone::JointId, JointFusionData> data) {
 	kFusionModule->newData(sensor, data);
+}
+
+void jester::Controller::addSensor(Sensor *sensor) {
+
+}
+
+jester::DataFusionModule* jester::Controller::getDataFusionModule() {
+	return kFusionModule;
 }

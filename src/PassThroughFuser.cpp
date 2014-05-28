@@ -14,7 +14,7 @@ void jester::PassThroughFuser::newData(Sensor *sensor, std::map<Bone::BoneId, Bo
 }
 
 void jester::PassThroughFuser::newData(Sensor *sensor, std::map<Bone::JointId, JointFusionData> data) {
-	setSkeletonFromJoints(sensor, data);
+	newData(sensor, jointDataToBoneData(sensor, data));
 }
 
 jester::PassThroughFuser::PassThroughFuser() : DataFusionModule() {

@@ -18,8 +18,10 @@ namespace jester {
 		long int getTimestamp();
 		void suggestBoneInfo(Sensor *sensor, std::map<Bone::BoneId, BoneFusionData> data);
 		void suggestJointInfo(Sensor *sensor, std::map<Bone::JointId, JointFusionData> data);
+		void addSensor(Sensor *sensor);
+		DataFusionModule* getDataFusionModule();
 
-		Controller(DataFusionModule *fusionModule);
+		Controller(DataFusionModuleFactory *fusionModuleFactory);
 		~Controller();
 	private:
 		std::clock_t kStartClock;

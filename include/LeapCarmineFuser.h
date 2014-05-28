@@ -9,61 +9,30 @@
 #include <cstring>
 #include <map>
 
-#include "JointParticleFilter.h"
-
-#include "DataFusionModule.h"
-#include "Sensor.h"
-#include "Bone.h"
-#include "Scene.h"
+#include "BasicDataFuser.h"
 
 namespace jester {
-	class LeapCarmineFuser : public DataFusionModule {
+	class LeapCarmineFuser : public BasicDataFuser {
 	public:
 		void newData(Sensor *sensor, std::map<Bone::BoneId, BoneFusionData> data);
 		void newData(Sensor *sensor, std::map<Bone::JointId, JointFusionData> data);
 
 		void setCarmine(Sensor *carmine);
 		void setLeap(Sensor *leap);
-		void setSceneRoot(SceneGraphNode *root);
 
 		LeapCarmineFuser();
 		~LeapCarmineFuser();
 	private:
-		typedef struct JointPositionHistory {
-			std::clock_t timestamp;
-			bool leapData;
-			bool carmineData;
-			std::map<Bone::JointId, JointFusionData> jointData;
-		} JointPositionHistory;
-
-		static const int HistoryLength;
-		static const int UpdateHertz;
-		static const int DataFrameExpirationMs;
 		static const int JointsPerHand;
-		static const int MaxRetrievalDistance;
 		static const float SwitchDelta;
 
-		std::thread *kSkeletonUpdateThread;
-		std::thread *kFrameAdvanceThread;
-		bool kContinueUpdating;
-		float kSkeletonDelayTime;
-		std::mutex kHistoryMutex;
-
-		JointPositionHistory *kJointHistory;
-		int kNewestInfo;
-
-		std::clock_t kInitClock;
 		Sensor *kCarmine;
 		Sensor *kLeap;
-		SceneGraphNode *kSceneRoot;
-		std::map<Bone::JointId, JointParticleFilter *> kFilters;
+	};
 
-		void updateSkeleton();
-		void advanceHistoryFrame();
-		void checkTimeout();
-		void insertJoints(std::map<Bone::JointId, JointFusionData> joints, glm::mat4 jointWorldTransform);
-		void launchThreads();
-		void initializeFilters();
+	class LeapCarmineFuserFactory : public DataFusionModuleFactory {
+	public:
+		DataFusionModule* CreateFusionModule();
 	};
 };
 

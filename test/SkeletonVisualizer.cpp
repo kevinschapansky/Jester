@@ -65,12 +65,11 @@ public:
 	static const int NUM_BONES = 16;
 
 	SkeletonVisualizer(int *argc, char **argv) {
-		kFuser = new jester::LeapCarmineFuser();
-		kController = new jester::Controller(kFuser);
+		jester::DataFusionModuleFactory* dfmf = new jester::LeapCarmineFuserFactory();
+		kController = new jester::Controller(dfmf);
 
-		kController->init();
 		kScene = kController->getScene();
-		kFuser->setSceneRoot(kScene);
+		kFuser = (jester::LeapCarmineFuser*) kController->getDataFusionModule();
 
 		#ifndef NO_CARMINE
 			kCarmine = jester::PrimeSenseCarmineFactory::CreateCarmineSensor(kScene, kController);
@@ -223,6 +222,9 @@ public:
 	void mousePosition(int x, int y) {
 		int xOffset = kRenderData.windowWidth / 2 - x;
 		int yOffset = kRenderData.windowHeight / 2 - y;
+
+		if (!kKeyData.captureMouse)
+			return;
 
 		if (abs(xOffset) > 2)
 			kKeyData.mouseOffsetX += xOffset;

@@ -12,7 +12,11 @@ void jester::DataFusionModule::setDefaultSkeleton() {
 		data.insert(std::pair<Bone::JointId, JointFusionData>(Bone::intToJointId(i), nextJoint));
 	}
 
-	setSkeletonFromJoints(sceneRoot, data);
+	std::vector<FusionBone> bones = jointsToBones(sceneRoot, data);
+
+	for (unsigned int i = 0; i < bones.size(); i++) {
+		*(kBones.find(bones[i].getType())->second) = bones[i];
+	}
 
 	//populate the default endpoints for when bones are set with unknown joint positions
 	for (int i = 0; i < Bone::BONE_COUNT; i++) {
@@ -27,7 +31,9 @@ void jester::DataFusionModule::setDefaultSkeleton() {
 	}
 }
 
-void jester::DataFusionModule::setSkeletonFromJoints(SceneGraphNode *positionParent, std::map<Bone::JointId, JointFusionData> joints) {
+std::vector<jester::FusionBone> jester::DataFusionModule::jointsToBones(SceneGraphNode *positionParent,
+				std::map<Bone::JointId, JointFusionData> joints) {
+	std::vector<FusionBone> bones;
 
 	for (unsigned int i = 0; i < Bone::BONE_COUNT; i++) {
 		Bone::BoneId id = Bone::intToBoneId(i);
@@ -37,7 +43,8 @@ void jester::DataFusionModule::setSkeletonFromJoints(SceneGraphNode *positionPar
 		glm::vec3 startPos;
 		glm::vec3 endPos;
 		float confidence = FLT_MAX;
-		FusionBone *bone = kBones.find(id)->second;
+		FusionBone *currentBone = kBones.find(id)->second;
+		FusionBone newBone = *currentBone;
 
 		if (hasStart) {
 			startPos = joints.find(jointIds.first)->second.position;
@@ -52,21 +59,43 @@ void jester::DataFusionModule::setSkeletonFromJoints(SceneGraphNode *positionPar
 			confidence = 0;
 
 		if (!hasStart && !hasEnd) {
-			setBoneDataFromEndpoints(bone->getParent(), bone->getParent(), bone,
-					bone->getDefaultJointPositions().first + glm::vec3(0, 0, ((Bone*) bone->getParent())->getLength()),
-					bone->getDefaultJointPositions().second + glm::vec3(0, 0, ((Bone*) bone->getParent())->getLength()), 0);
+			setBoneDataFromEndpoints(currentBone->getParent(), currentBone->getParent(), &newBone,
+					currentBone->getDefaultJointPositions().first + glm::vec3(0, 0, ((Bone*) currentBone->getParent())->getLength()),
+					currentBone->getDefaultJointPositions().second + glm::vec3(0, 0, ((Bone*) currentBone->getParent())->getLength()), 0);
 		} else if (!hasStart) {
-			setBoneDataFromEndpoints(bone->getParent(), positionParent, bone,
-					bone->getDefaultJointPositions().first + glm::vec3(0, 0, ((Bone*) bone->getParent())->getLength()),
+			setBoneDataFromEndpoints(currentBone->getParent(), positionParent, &newBone,
+					currentBone->getDefaultJointPositions().first + glm::vec3(0, 0, ((Bone*) currentBone->getParent())->getLength()),
 					endPos, 0);
 		} else if (!hasEnd) {
-			setBoneDataFromEndpoints(positionParent, bone, bone,
+			setBoneDataFromEndpoints(positionParent, currentBone, &newBone,
 					startPos,
-					bone->getDefaultJointPositions().second + glm::vec3(0, 0, ((Bone*) bone->getParent())->getLength()), 0);
+					currentBone->getDefaultJointPositions().second + glm::vec3(0, 0, ((Bone*) currentBone->getParent())->getLength()), 0);
 		} else {
-			setBoneDataFromEndpoints(positionParent, positionParent, bone, startPos, endPos, confidence);
+			setBoneDataFromEndpoints(positionParent, positionParent, &newBone, startPos, endPos, confidence);
 		}
+		bones.push_back(newBone);
 	}
+
+	return bones;
+}
+
+std::map<jester::Bone::BoneId, jester::BoneFusionData> jester::DataFusionModule::jointDataToBoneData(SceneGraphNode *positionParent, std::map<Bone::JointId, JointFusionData> joints) {
+	std::map<jester::Bone::BoneId, jester::BoneFusionData> boneMap;
+	std::vector<FusionBone> bones = jointsToBones(positionParent, joints);
+
+	for (unsigned int i = 0; i < bones.size(); i++) {
+		Bone curBone = bones[i];
+
+		BoneFusionData newData;
+		newData.confidence =curBone.getConfidence();
+		newData.id = curBone.getType();
+		newData.length = curBone.getLength();
+		newData.orientation = curBone.getOrientation();
+		newData.position = curBone.getPosition();
+
+		boneMap.insert(std::pair<Bone::BoneId, BoneFusionData>(newData.id, newData));
+	}
+	return boneMap;
 }
 
 void jester::DataFusionModule::setSkeletonBones(FusionBone *bones[Bone::JOINT_COUNT]) {
@@ -101,4 +130,10 @@ void jester::DataFusionModule::setBoneDataFromEndpoints(SceneGraphNode *curStart
 	bone->setLength(glm::distance(worldStartPosition, worldEndPosition));
 }
 
+void jester::DataFusionModule::setSceneRoot(SceneGraphNode *root) {
+	kSceneRoot = root;
+}
+
 jester::DataFusionModule::~DataFusionModule() {}
+
+jester::DataFusionModuleFactory::~DataFusionModuleFactory() {}

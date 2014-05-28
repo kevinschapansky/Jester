@@ -8,7 +8,7 @@ JLIBNAME := libjester.a
 SRCEXT := cpp
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
-CFLAGS := -g -Wall -std=c++0x
+CFLAGS := -g -Wall -std=c++0x -O3
 LIB := -L lib -L /usr/local/include
 INC := -I include -I /usr/local/include
 
