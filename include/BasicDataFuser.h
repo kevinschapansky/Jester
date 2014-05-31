@@ -29,41 +29,37 @@ namespace jester {
 		virtual ~BasicDataFuser();
 
 	protected:
-		typedef struct JointPositionHistory {
+		typedef struct BonePositionHistory {
 			std::clock_t timestamp;
-			bool *sensorDataPresent;
-			std::map<Bone::JointId, JointFusionData> jointData;
-		} JointPositionHistory;
+			std::map<Sensor*, std::map<Bone::BoneId, BoneFusionData>> rawBoneData;
+			std::map<Bone::BoneId, BoneFusionData> fusedBoneData;
+		} BonePositionHistory;
 
 		static const int HistoryLength;
 		static const int UpdateHertz;
-		static const int DataFrameExpirationMs;
-		static const int DataFrameExpirationCheckMs;
 		static const int MaxRetrievalDistance;
 
 		std::thread *kSkeletonUpdateThread;
-		std::thread *kFrameAdvanceThread;
 
 		bool kContinueUpdating;
 		float kSkeletonDelayTime;
 		std::mutex kHistoryMutex;
 
-		JointPositionHistory *kJointHistory;
+		BonePositionHistory *kBoneHistory;
 		int kNewestInfo;
 
 		std::clock_t kInitClock;
 
-		std::map<int, Sensor *> kSensors;
-		int kSensorCount;
-		std::queue<std::pair<Sensor*, std::map<Bone::BoneId, BoneFusionData>>> kDataQueue;
+		std::vector<Sensor *> kSensors;
 		//std::map<Bone::JointId, JointParticleFilter *> kFilters;
 
-		void updateSkeleton();
-		void advanceHistoryFrame();
-		void checkTimeout();
-		void insertJoints(std::map<Bone::JointId, JointFusionData> joints, glm::mat4 jointWorldTransform);
 		void initializeHistory();
 		void initializeFilters();
+		void updateSkeleton();
+		void fuseBoneDataInFrame(int frame);
+		void insertBoneDataIntoFrame(int frame, Sensor* sensor, std::map<Bone::BoneId, BoneFusionData> bones);
+		std::map<Bone::BoneId, BoneFusionData> findBestSkeletonFromFrame(int frame);
+		void advanceHistoryFrame();
 	private:
 
 	};

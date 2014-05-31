@@ -102,6 +102,8 @@ public:
 	}
 
 	void start() {
+		kFuser->startFusion();
+
 		#ifndef NO_CARMINE
 			if (!kCarmine->start()) {
 			 	printf("Carmine sensor start failed\n");

@@ -1,16 +1,9 @@
 TODO:
 
 Imm:
- - Add functionality to data fusion base class from LCFuser
-   + finish addSensor pathway
  - Create data filter base class
- - Refactor fuser to operate on bones
  - Refactor filter to operate on bones
- - DataFusionModule::getBonesFromJoints()
- - Data Fuser interpolate between conflicting positions
-
-Possibly:
- - Make data send to fusion asynchronous
+ - Scene handle race condition
 
 
 Carmine:

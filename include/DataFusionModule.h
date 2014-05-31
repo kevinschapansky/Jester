@@ -48,8 +48,11 @@ namespace jester {
 			FusionBone *bone, glm::vec3 startPos, glm::vec3 endPos, float confidence);
 		virtual std::map<Bone::BoneId, BoneFusionData> jointDataToBoneData(SceneGraphNode *positionParent,
 				std::map<Bone::JointId, JointFusionData> joints);
-		virtual std::vector<FusionBone> jointsToBones(SceneGraphNode *positionParent,
+		virtual std::map<Bone::BoneId, FusionBone> jointsToWorldSpaceBones(SceneGraphNode *positionParent,
 				std::map<Bone::JointId, JointFusionData> joints);
+		virtual std::map<Bone::BoneId, FusionBone> boneDataToWorldSpaceBones(std::map<Bone::BoneId, BoneFusionData> bones);
+		virtual void setSkeletonFromBoneData(std::map<Bone::BoneId, BoneFusionData> data);
+		virtual void setSkeletonFromWorldSpaceBones(std::map<Bone::BoneId, FusionBone> bones);
 	};
 
 	class DataFusionModuleFactory {
