@@ -9,6 +9,7 @@ jester::Controller::Controller(DataFusionModuleFactory *fusionModuleFactory) {
 	init();
 
 	kFusionModule->setSceneRoot(kScene);
+	kFusionModule->setDefaultSkeleton();
 }
 
 jester::Controller::~Controller() {

@@ -13,6 +13,7 @@
 #include "Bone.h"
 #include "Sensor.h"
 #include "FusionBone.h"
+#include "Scene.h"
 
 namespace jester {
 	class BoneFusionData {
@@ -31,28 +32,32 @@ namespace jester {
 		glm::vec3 position;
 	};
 
+	class Scene;
+
 	class DataFusionModule {
 	public:
 		virtual void newData(Sensor *sensor, std::map<Bone::BoneId, BoneFusionData> data) = 0;
 		virtual void newData(Sensor *sensor, std::map<Bone::JointId, JointFusionData> data) = 0;
 		virtual void setDefaultSkeleton();
 		void setSkeletonBones(FusionBone *bones[Bone::JOINT_COUNT]);
-		void setSceneRoot(SceneGraphNode *root);
+		void setSceneRoot(Scene *root);
 
 		virtual ~DataFusionModule();
 	protected:
-		std::map<Bone::BoneId, FusionBone *> kBones;
-		SceneGraphNode *kSceneRoot;
+		FusionBone **kBones;
+		FusionBone **kDefaultBones;
+		Scene *kSceneRoot;
 
-		virtual void setBoneDataFromEndpoints(SceneGraphNode *curStartParent, SceneGraphNode *curEndParent,
-			FusionBone *bone, glm::vec3 startPos, glm::vec3 endPos, float confidence);
+		virtual void setBoneDataFromEndpoints(FusionBone *bone, glm::vec3 startPos, glm::vec3 endPos, float confidence);
 		virtual std::map<Bone::BoneId, BoneFusionData> jointDataToBoneData(SceneGraphNode *positionParent,
-				std::map<Bone::JointId, JointFusionData> joints);
-		virtual std::map<Bone::BoneId, FusionBone> jointsToWorldSpaceBones(SceneGraphNode *positionParent,
-				std::map<Bone::JointId, JointFusionData> joints);
-		virtual std::map<Bone::BoneId, FusionBone> boneDataToWorldSpaceBones(std::map<Bone::BoneId, BoneFusionData> bones);
-		virtual void setSkeletonFromBoneData(std::map<Bone::BoneId, BoneFusionData> data);
-		virtual void setSkeletonFromWorldSpaceBones(std::map<Bone::BoneId, FusionBone> bones);
+				const std::map<Bone::JointId, JointFusionData> joints);
+		virtual std::map<Bone::BoneId, FusionBone> jointsToParentSpaceBones(SceneGraphNode *positionParent,
+				const std::map<Bone::JointId, JointFusionData> joints);
+		virtual std::map<Bone::BoneId, FusionBone> boneDataToWorldSpaceBones(const std::map<Bone::BoneId, BoneFusionData> bones);
+		virtual void setSkeletonFromBoneData(const std::map<Bone::BoneId, BoneFusionData> data);
+		virtual void setSkeletonFromWorldSpaceBones(FusionBone *skeleton[Bone::BONE_COUNT],
+				const std::map<Bone::BoneId, FusionBone> bones);
+		virtual void setBoneWithWorldSpaceBone(FusionBone *set, FusionBone worldSpace);
 	};
 
 	class DataFusionModuleFactory {

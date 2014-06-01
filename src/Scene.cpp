@@ -10,56 +10,58 @@ jester::Bone* jester::Scene::getRootBone() {
 	return kSkeleton[Bone::ROOT];
 }
 
-void jester::Scene::buildSkeleton() {
+jester::FusionBone** jester::Scene::buildSkeleton() {
+	FusionBone **skeleton = new FusionBone*[Bone::BONE_COUNT];
 	//root bone
-	kSkeleton[Bone::ROOT] = new FusionBone(this, Bone::ROOT);
+	skeleton[Bone::ROOT] = new FusionBone(this, Bone::ROOT);
 
 	//torso/hip chains
-	kSkeleton[Bone::PELVIS_L] = new FusionBone(kSkeleton[Bone::ROOT], Bone::PELVIS_L);
-	kSkeleton[Bone::PELVIS_R] = new FusionBone(kSkeleton[Bone::ROOT], Bone::PELVIS_R);
+	skeleton[Bone::PELVIS_L] = new FusionBone(skeleton[Bone::ROOT], Bone::PELVIS_L);
+	skeleton[Bone::PELVIS_R] = new FusionBone(skeleton[Bone::ROOT], Bone::PELVIS_R);
 
-	kSkeleton[Bone::SPINE] = new FusionBone(kSkeleton[Bone::ROOT], Bone::SPINE);
-	kSkeleton[Bone::COLLAR_L] = new FusionBone(kSkeleton[Bone::SPINE], Bone::COLLAR_L);
-	kSkeleton[Bone::COLLAR_R] = new FusionBone(kSkeleton[Bone::SPINE], Bone::COLLAR_R);
-	kSkeleton[Bone::NECK] = new FusionBone(kSkeleton[Bone::SPINE], Bone::NECK);
+	skeleton[Bone::SPINE] = new FusionBone(skeleton[Bone::ROOT], Bone::SPINE);
+	skeleton[Bone::COLLAR_L] = new FusionBone(skeleton[Bone::SPINE], Bone::COLLAR_L);
+	skeleton[Bone::COLLAR_R] = new FusionBone(skeleton[Bone::SPINE], Bone::COLLAR_R);
+	skeleton[Bone::NECK] = new FusionBone(skeleton[Bone::SPINE], Bone::NECK);
 
-	kSkeleton[Bone::SKULL] = new FusionBone(kSkeleton[Bone::NECK], Bone::SKULL);
+	skeleton[Bone::SKULL] = new FusionBone(skeleton[Bone::NECK], Bone::SKULL);
 
 	//extremeity chains
-	kSkeleton[Bone::FEMUR_L] = new FusionBone(kSkeleton[Bone::PELVIS_L], Bone::FEMUR_L);
-	kSkeleton[Bone::FEMUR_R] = new FusionBone(kSkeleton[Bone::PELVIS_R], Bone::FEMUR_R);
+	skeleton[Bone::FEMUR_L] = new FusionBone(skeleton[Bone::PELVIS_L], Bone::FEMUR_L);
+	skeleton[Bone::FEMUR_R] = new FusionBone(skeleton[Bone::PELVIS_R], Bone::FEMUR_R);
 
-	kSkeleton[Bone::TIBIA_L] = new FusionBone(kSkeleton[Bone::FEMUR_L], Bone::TIBIA_L);
-	kSkeleton[Bone::TIBIA_R] = new FusionBone(kSkeleton[Bone::FEMUR_R], Bone::TIBIA_R);
+	skeleton[Bone::TIBIA_L] = new FusionBone(skeleton[Bone::FEMUR_L], Bone::TIBIA_L);
+	skeleton[Bone::TIBIA_R] = new FusionBone(skeleton[Bone::FEMUR_R], Bone::TIBIA_R);
 
-	kSkeleton[Bone::HUMERUS_L] = new FusionBone(kSkeleton[Bone::COLLAR_L], Bone::HUMERUS_L);
-	kSkeleton[Bone::HUMERUS_R] = new FusionBone(kSkeleton[Bone::COLLAR_R], Bone::HUMERUS_R);
+	skeleton[Bone::HUMERUS_L] = new FusionBone(skeleton[Bone::COLLAR_L], Bone::HUMERUS_L);
+	skeleton[Bone::HUMERUS_R] = new FusionBone(skeleton[Bone::COLLAR_R], Bone::HUMERUS_R);
 
-	kSkeleton[Bone::RADIUS_L] = new FusionBone(kSkeleton[Bone::HUMERUS_L], Bone::RADIUS_L);
-	kSkeleton[Bone::RADIUS_R] = new FusionBone(kSkeleton[Bone::HUMERUS_R], Bone::RADIUS_R);
+	skeleton[Bone::RADIUS_L] = new FusionBone(skeleton[Bone::HUMERUS_L], Bone::RADIUS_L);
+	skeleton[Bone::RADIUS_R] = new FusionBone(skeleton[Bone::HUMERUS_R], Bone::RADIUS_R);
 
 	//fingers
-	kSkeleton[Bone::PHALANX_L_1] = new FusionBone(kSkeleton[Bone::RADIUS_L], Bone::PHALANX_L_1);
-	kSkeleton[Bone::PHALANX_L_2] = new FusionBone(kSkeleton[Bone::RADIUS_L], Bone::PHALANX_L_2);
-	kSkeleton[Bone::PHALANX_L_3] = new FusionBone(kSkeleton[Bone::RADIUS_L], Bone::PHALANX_L_3);
-	kSkeleton[Bone::PHALANX_L_4] = new FusionBone(kSkeleton[Bone::RADIUS_L], Bone::PHALANX_L_4);
-	kSkeleton[Bone::PHALANX_L_5] = new FusionBone(kSkeleton[Bone::RADIUS_L], Bone::PHALANX_L_5);
+	skeleton[Bone::PHALANX_L_1] = new FusionBone(skeleton[Bone::RADIUS_L], Bone::PHALANX_L_1);
+	skeleton[Bone::PHALANX_L_2] = new FusionBone(skeleton[Bone::RADIUS_L], Bone::PHALANX_L_2);
+	skeleton[Bone::PHALANX_L_3] = new FusionBone(skeleton[Bone::RADIUS_L], Bone::PHALANX_L_3);
+	skeleton[Bone::PHALANX_L_4] = new FusionBone(skeleton[Bone::RADIUS_L], Bone::PHALANX_L_4);
+	skeleton[Bone::PHALANX_L_5] = new FusionBone(skeleton[Bone::RADIUS_L], Bone::PHALANX_L_5);
 
-	kSkeleton[Bone::PHALANX_R_1] = new FusionBone(kSkeleton[Bone::RADIUS_R], Bone::PHALANX_R_1);
-	kSkeleton[Bone::PHALANX_R_2] = new FusionBone(kSkeleton[Bone::RADIUS_R], Bone::PHALANX_R_2);
-	kSkeleton[Bone::PHALANX_R_3] = new FusionBone(kSkeleton[Bone::RADIUS_R], Bone::PHALANX_R_3);
-	kSkeleton[Bone::PHALANX_R_4] = new FusionBone(kSkeleton[Bone::RADIUS_R], Bone::PHALANX_R_4);
-	kSkeleton[Bone::PHALANX_R_5] = new FusionBone(kSkeleton[Bone::RADIUS_R], Bone::PHALANX_R_5);
+	skeleton[Bone::PHALANX_R_1] = new FusionBone(skeleton[Bone::RADIUS_R], Bone::PHALANX_R_1);
+	skeleton[Bone::PHALANX_R_2] = new FusionBone(skeleton[Bone::RADIUS_R], Bone::PHALANX_R_2);
+	skeleton[Bone::PHALANX_R_3] = new FusionBone(skeleton[Bone::RADIUS_R], Bone::PHALANX_R_3);
+	skeleton[Bone::PHALANX_R_4] = new FusionBone(skeleton[Bone::RADIUS_R], Bone::PHALANX_R_4);
+	skeleton[Bone::PHALANX_R_5] = new FusionBone(skeleton[Bone::RADIUS_R], Bone::PHALANX_R_5);
+
+	return skeleton;
 }
 
 jester::Scene::Scene(DataFusionModule *fuser) : SceneGraphNode(NULL) {
 	kOrientation = glm::quat_cast(glm::mat4(1));
 	kPosition = glm::vec3(0);
 
-	buildSkeleton();
+	kSkeleton = buildSkeleton();
 
 	fuser->setSkeletonBones(kSkeleton);
-	fuser->setDefaultSkeleton();
 }
 
 jester::Scene::~Scene() {

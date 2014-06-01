@@ -7,17 +7,18 @@
 #include "FusionBone.h"
 
 namespace jester {
+	class DataFusionModule;
+
 	class Scene : public SceneGraphNode {
 	public:
 		Bone* getBone(Bone::BoneId bone);
 		Bone* getRootBone();
+		FusionBone** buildSkeleton();
 		
 		Scene(DataFusionModule *fuser);
 		~Scene();
 	protected:
-		FusionBone *kSkeleton[Bone::BONE_COUNT];
-
-		void buildSkeleton();
+		FusionBone **kSkeleton;
 	};
 };
 
