@@ -2,6 +2,7 @@ TODO:
 
 Imm:
  - Fix bone conflict for half known bones
+ - Implement hand swap
 
 Carmine:
 
@@ -12,4 +13,3 @@ Ideas:
  - Supply logging #ifdef to write out sensor readings
 
 Validation:
- - Ball bounce demo

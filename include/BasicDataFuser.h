@@ -10,6 +10,7 @@
 #include <map>
 #include <vector>
 #include <queue>
+#include <sys/time.h>
 
 #include "DataFusionModule.h"
 #include "Sensor.h"
@@ -31,7 +32,7 @@ namespace jester {
 
 	protected:
 		typedef struct BonePositionHistory {
-			std::clock_t timestamp;
+			double timestamp;
 			std::map<Sensor*, std::map<Bone::BoneId, BoneFusionData>> rawBoneData;
 			std::map<Bone::BoneId, BoneFusionData> fusedBoneData;
 		} BonePositionHistory;
@@ -43,13 +44,13 @@ namespace jester {
 		std::thread *kSkeletonUpdateThread;
 
 		bool kContinueUpdating;
-		float kSkeletonDelayTime;
+		double kSkeletonDelayTime;
 		std::mutex kHistoryMutex;
 
 		BonePositionHistory *kBoneHistory;
 		int kNewestInfo;
 
-		std::clock_t kInitClock;
+		double kInitClock;
 
 		std::vector<Sensor *> kSensors;
 		std::map<Bone::BoneId, Filter *> kFilters;
@@ -62,7 +63,14 @@ namespace jester {
 		std::map<Bone::BoneId, BoneFusionData> findBestSkeletonFromFrame(int frame);
 		void advanceHistoryFrame();
 	private:
-
+		double getWallTime() {
+			struct timeval time;
+			if (gettimeofday(&time,NULL)){
+				//  Handle error
+				return 0;
+			}
+			return (double)time.tv_sec + (double)time.tv_usec * .000001;
+		}
 	};
 
 	class BasicDataFuserFactory : public DataFusionModuleFactory {

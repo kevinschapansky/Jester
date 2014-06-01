@@ -6,9 +6,9 @@ const int jester::BasicDataFuser::MaxRetrievalDistance = 10;
 
 jester::BasicDataFuser::BasicDataFuser() {
 	kNewestInfo = 0;
-	kInitClock = std::clock();
+	kInitClock = getWallTime();
 	kContinueUpdating = false;
-	kSkeletonDelayTime = 1.f / UpdateHertz * 1000.f;
+	kSkeletonDelayTime = 1.f / UpdateHertz;
 	kBoneHistory = NULL;
 
 	kSkeletonUpdateThread = NULL;
@@ -51,12 +51,12 @@ void jester::BasicDataFuser::addSensor(Sensor* sensor) {
 
 void jester::BasicDataFuser::updateSkeleton() {
 	std::map<Bone::BoneId, BoneFusionData> bestSkeleton;
-	std::clock_t processingStartTime;
-	float processingMs;
+	double processingStartTime;
+	double processingSec;
 	int startFrame;
 
 	do {
-		processingStartTime = std::clock();
+		processingStartTime = getWallTime();
 		bestSkeleton.clear();
 
 		kHistoryMutex.lock();
@@ -72,8 +72,9 @@ void jester::BasicDataFuser::updateSkeleton() {
 		setSkeletonFromBoneData(bestSkeleton);
 		kSceneRoot->finishSkeletonUpdate();
 
-		processingMs = (std::clock() - processingStartTime) / CLOCKS_PER_SEC / 1000;
-		std::this_thread::sleep_for(std::chrono::milliseconds(std::max(0, (int) (kSkeletonDelayTime - processingMs))));
+		processingSec = (getWallTime() - processingStartTime);
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(std::max(0, (int) ((kSkeletonDelayTime - processingSec) * 1000.0))));
 	} while (kContinueUpdating);
 }
 
@@ -131,7 +132,7 @@ std::map<jester::Bone::BoneId, jester::BoneFusionData> jester::BasicDataFuser::f
 //assumes that mutex lock/unlock is handled by the calling function, otherwise
 //there will be concurrency problems.
 void jester::BasicDataFuser::advanceHistoryFrame() {
-	kBoneHistory[kNewestInfo].timestamp = std::clock();
+	kBoneHistory[kNewestInfo].timestamp = getWallTime();
 	kNewestInfo = (kNewestInfo + 1) % HistoryLength;
 
 	kBoneHistory[kNewestInfo].fusedBoneData.clear();

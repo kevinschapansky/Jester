@@ -119,6 +119,8 @@ public:
 			}
 		#endif
 
+		kPhysics->start();
+
 		glutMainLoop();
 	}
 
@@ -142,6 +144,9 @@ public:
 	    kScene->refreshSkeleton();
 		drawJoints();
 		drawBones();
+
+		drawBalls(kPhysics->update(kScene->getBone(jester::Bone::BoneId::SKULL)->getWorldPosition() + glm::vec3(0, 1.0, kHands[0].position.z), kHands));
+
 		//disable the shader
 		glUseProgram(0);	
 		glutSwapBuffers();
@@ -245,9 +250,12 @@ private:
 
 	Mesh *kBoneMesh;
 	Mesh *kJointMesh;
+	Mesh *kBallMesh;
 	RenderData kRenderData;
 	KeyData kKeyData;
 	float kDegToRad;
+	PhysicsEngine *kPhysics;
+	std::vector<PhysicsInteractor> kHands;
 
 	void initialize() {
 		kRenderData.windowHeight = 600;
@@ -283,6 +291,8 @@ private:
 
 	    kBoneMesh = GeometryCreator::CreateCylinder(0.025, 0.025, 1, 15, 15);
 	    kJointMesh = GeometryCreator::CreateSphere(glm::vec3(0.05));
+	    kBallMesh = GeometryCreator::CreateSphere(glm::vec3(0.075));
+	    kPhysics = new PhysicsEngine(2, -5.0, 0.075);
 
 		kKeyData.w = false;
 		kKeyData.a = false;
@@ -386,10 +396,6 @@ private:
         glUniform3f(kRenderData.uColor, 0.409f, 0.409f, 0.409f);
         glUniform1f(kRenderData.uMaterial, 1.f);
 
-        jester::Bone *rootBone = kScene->getBone(jester::Bone::ROOT);
-        glm::vec3 rootTrans = rootBone->getWorldPosition();
-        rootTrans.y *= -1;
-
         for (int i = 0; i < jester::Bone::BoneId::BONE_COUNT; i++) {
         	jester::Bone *curBone = kScene->getBone(jester::Bone::intToBoneId(i));
 
@@ -398,8 +404,7 @@ private:
 			} else {
 				glUniform3f(kRenderData.uColor, 0.909f, 0.409f, 0.409f);
 			}
-			glm::mat4 boneModelMatrix = glm::translate(glm::mat4(1), -rootTrans) * 
-				glm::scale(curBone->getWorldTransform(), glm::vec3(curBone->getWidth(), curBone->getWidth(), curBone->getLength()));
+			glm::mat4 boneModelMatrix = glm::scale(curBone->getWorldTransform(), glm::vec3(curBone->getWidth(), curBone->getWidth(), curBone->getLength()));
 
 			SetModel(boneModelMatrix);
 			glDrawElements(GL_TRIANGLES, kBoneMesh->IndexBufferLength, GL_UNSIGNED_SHORT, 0);
@@ -422,12 +427,29 @@ private:
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, kJointMesh->IndexHandle);
         glUniform1f(kRenderData.uMaterial, 1.f);
 
-        jester::Bone *rootBone = kScene->getBone(jester::Bone::ROOT);
-        glm::vec3 rootTrans = rootBone->getWorldPosition();
-        rootTrans.y *= -1;
+        kHands.clear();
 
 		for (int i = 0; i < jester::Bone::BoneId::BONE_COUNT; i++) {
 			jester::Bone *curBone = kScene->getBone(jester::Bone::intToBoneId(i));
+
+			if (curBone->getType() == jester::Bone::RADIUS_L ||
+					curBone->getType() == jester::Bone::RADIUS_R) {
+				bool bounce;
+
+				if (curBone->getType() == jester::Bone::RADIUS_L) {
+					bounce = kScene->getBone(jester::Bone::BoneId::PHALANX_L_1)->getPosition().x > 0;
+				} else {
+					bounce = kScene->getBone(jester::Bone::BoneId::PHALANX_R_1)->getPosition().x < 0;
+				}
+
+				kHands.push_back(
+						PhysicsInteractor(
+								jester::SceneGraphNode::positionSpaceConversion(curBone->getPosition() + glm::vec3(0, 0, curBone->getLength()),
+										curBone,
+										kScene),
+								0.075,
+								bounce));
+			}
 
 			if (curBone->getConfidence() > 0.5) {
 				glUniform3f(kRenderData.uColor, 0.409f, 0.409f, 0.409f);
@@ -437,12 +459,39 @@ private:
 
 			float scalingFactor = std::min(1.0f, curBone->getWidth());
 
-			SetModel(glm::translate(glm::mat4(1), -rootTrans) * glm::translate(glm::mat4(1), curBone->getWorldPosition()) *
+			SetModel(glm::translate(glm::mat4(1), curBone->getWorldPosition()) *
 					glm::scale(glm::mat4(1), glm::vec3(scalingFactor, scalingFactor, scalingFactor)));
 			glDrawElements(GL_TRIANGLES, kJointMesh->IndexBufferLength, GL_UNSIGNED_SHORT, 0);
 		}
 
 		//clean up 
+		safe_glDisableVertexAttribArray(kRenderData.aPosition);
+		safe_glDisableVertexAttribArray(kRenderData.aNormal);
+	}
+
+	void drawBalls(std::vector<PhysicsBall> balls) {
+		safe_glDisableVertexAttribArray(kRenderData.aPosition);
+		safe_glDisableVertexAttribArray(kRenderData.aNormal);
+
+		//attach bone mesh data to shader handles
+		safe_glEnableVertexAttribArray(kRenderData.aPosition);
+		glBindBuffer(GL_ARRAY_BUFFER, kBallMesh->PositionHandle);
+		safe_glVertexAttribPointer(kRenderData.aPosition, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+		safe_glEnableVertexAttribArray(kRenderData.aNormal);
+		glBindBuffer(GL_ARRAY_BUFFER, kBallMesh->NormalHandle);
+		safe_glVertexAttribPointer(kRenderData.aNormal, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, kBallMesh->IndexHandle);
+		glUniform1f(kRenderData.uMaterial, 1.f);
+		glUniform3f(kRenderData.uColor, 0.1f, 0.7f, 0.1f);
+
+		for (unsigned int i = 0; i < balls.size(); i++) {
+			SetModel(glm::translate(glm::mat4(1), balls[i].position));
+			glDrawElements(GL_TRIANGLES, kBallMesh->IndexBufferLength, GL_UNSIGNED_SHORT, 0);
+		}
+
+		//clean up
 		safe_glDisableVertexAttribArray(kRenderData.aPosition);
 		safe_glDisableVertexAttribArray(kRenderData.aNormal);
 	}
