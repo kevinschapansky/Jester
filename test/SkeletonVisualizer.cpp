@@ -8,6 +8,7 @@
 #include "Bone.h"
 #include "GLSL_helper.h"
 #include "GeometryCreator.h"
+#include "PhysicsEngine.h"
 
 #include <stdio.h>
 #include <glm/vec3.hpp>

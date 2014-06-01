@@ -20,5 +20,5 @@ all: SkeletonVisualizer
 
 SkeletonVisualizer:
 	@echo " Building tests"
-	@echo " $(CC) $(CFLAGS) $(TINC) $(CARMINEINC) $(LEAPINC) GLSL_helper.cpp GeometryCreator.cpp $@.cpp -o ../bin/$@ $(TLIB) $(CARMINELIB) $(LEAPLIB) $(LIBS)"; \
-	 $(CC) $(CFLAGS) $(TINC) $(CARMINEINC) $(LEAPINC) GLSL_helper.cpp GeometryCreator.cpp $@.cpp -o ../bin/$@ $(TLIB) $(CARMINELIB) $(LEAPLIB) $(LIBS)
+	@echo " $(CC) $(CFLAGS) $(TINC) $(CARMINEINC) $(LEAPINC) GLSL_helper.cpp GeometryCreator.cpp PhysicsEngine.cpp $@.cpp -o ../bin/$@ $(TLIB) $(CARMINELIB) $(LEAPLIB) $(LIBS)"; \
+	 $(CC) $(CFLAGS) $(TINC) $(CARMINEINC) $(LEAPINC) GLSL_helper.cpp GeometryCreator.cpp PhysicsEngine.cpp $@.cpp -o ../bin/$@ $(TLIB) $(CARMINELIB) $(LEAPLIB) $(LIBS)
