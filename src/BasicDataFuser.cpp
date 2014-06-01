@@ -68,7 +68,9 @@ void jester::BasicDataFuser::updateSkeleton() {
 
 		bestSkeleton = findBestSkeletonFromFrame(startFrame);
 
+		kSceneRoot->beginSkeletonUpdate();
 		setSkeletonFromBoneData(bestSkeleton);
+		kSceneRoot->finishSkeletonUpdate();
 
 		processingMs = (std::clock() - processingStartTime) / CLOCKS_PER_SEC / 1000;
 		std::this_thread::sleep_for(std::chrono::milliseconds(std::max(0, (int) (kSkeletonDelayTime - processingMs))));

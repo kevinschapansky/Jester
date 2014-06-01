@@ -15,6 +15,7 @@
 #include "Sensor.h"
 #include "Bone.h"
 #include "Scene.h"
+#include "Filter.h"
 
 namespace jester {
 	class BasicDataFuser : public DataFusionModule {
@@ -51,7 +52,7 @@ namespace jester {
 		std::clock_t kInitClock;
 
 		std::vector<Sensor *> kSensors;
-		//std::map<Bone::JointId, JointParticleFilter *> kFilters;
+		std::map<Bone::BoneId, Filter *> kFilters;
 
 		void initializeHistory();
 		void initializeFilters();

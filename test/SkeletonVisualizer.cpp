@@ -22,7 +22,7 @@ extern "C" void KeyDown(unsigned char key, int x, int y);
 extern "C" void KeyUp(unsigned char key, int x, int y);
 extern "C" void MousePosition(int x, int y);
 
-//#define NO_CARMINE
+#define NO_CARMINE
 //#define NO_LEAP
 
 class SkeletonVisualizer {
@@ -138,6 +138,7 @@ public:
 	    glUniform3f(kRenderData.uLightPos, 0.f, 10.f, 5.0f );
 	    glUniform3f(kRenderData.uLightColor, .7f, .7f, .7f);
 		
+	    kScene->refreshSkeleton();
 		drawJoints();
 		drawBones();
 		//disable the shader

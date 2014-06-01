@@ -14,7 +14,7 @@
 namespace jester {
 	class SceneGraphNode {
 	public:
-		std::vector<SceneGraphNode *>::const_iterator children();
+		std::vector<SceneGraphNode *> children();
 		
 		glm::vec3 getPosition();
 		virtual glm::vec3 getWorldPosition();
@@ -37,11 +37,11 @@ namespace jester {
 		void addChild(SceneGraphNode *child);
 		void removeChild(SceneGraphNode *child);
 
-		std::vector<SceneGraphNode *> kChildren;
 	protected:
 		SceneGraphNode *kParent;
 		glm::vec3 kPosition;
 		glm::quat kOrientation;
+		std::vector<SceneGraphNode *> kChildren;
 	};
 };
 

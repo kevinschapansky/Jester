@@ -13,6 +13,7 @@ namespace jester {
 		void setLength(float length);
 		void setWidth(float width);
 		void setDefaultEndpoints(glm::vec3, glm::vec3);
+		void setChildren(std::vector<SceneGraphNode *> children);
 
 		FusionBone(SceneGraphNode *parent, BoneId type);
 	};

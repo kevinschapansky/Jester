@@ -1,10 +1,7 @@
 TODO:
 
 Imm:
- - Create data filter base class
- - Refactor filter to operate on bones
- - Scene handle race condition
-
+ - Fix bone conflict for half known bones
 
 Carmine:
 

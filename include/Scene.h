@@ -1,6 +1,8 @@
 #ifndef _Scene_h_
 #define _Scene_h_
 
+#include <mutex>
+
 #include "SceneGraphNode.h"
 #include "DataFusionModule.h"
 #include "Bone.h"
@@ -14,11 +16,17 @@ namespace jester {
 		Bone* getBone(Bone::BoneId bone);
 		Bone* getRootBone();
 		FusionBone** buildSkeleton();
+		void beginSkeletonUpdate();
+		void finishSkeletonUpdate();
+		void refreshSkeleton();
 		
 		Scene(DataFusionModule *fuser);
 		~Scene();
 	protected:
-		FusionBone **kSkeleton;
+		FusionBone **kSkeletonA;
+		FusionBone **kSkeletonB;
+		std::mutex kSwapMutex;
+		DataFusionModule *kFuser;
 	};
 };
 

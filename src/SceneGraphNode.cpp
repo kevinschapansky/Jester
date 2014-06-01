@@ -1,7 +1,7 @@
 #include "SceneGraphNode.h"
 
-std::vector<jester::SceneGraphNode *>::const_iterator jester::SceneGraphNode::children() {
-	return kChildren.cbegin();
+std::vector<jester::SceneGraphNode *> jester::SceneGraphNode::children() {
+	return kChildren;
 }
 
 glm::vec3 jester::SceneGraphNode::getPosition() {

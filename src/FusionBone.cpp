@@ -24,6 +24,12 @@ void jester::FusionBone::setDefaultEndpoints(glm::vec3 start, glm::vec3 end) {
 	*kDefaultJointPositions = std::make_pair(start, end);
 }
 
+void jester::FusionBone::setChildren(std::vector<SceneGraphNode *> children) {
+	kChildren.clear();
+
+	kChildren = children;
+}
+
 jester::FusionBone::FusionBone(SceneGraphNode *parent, BoneId type) : Bone(parent, type) {
 
 }

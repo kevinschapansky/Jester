@@ -2,12 +2,12 @@
 
 jester::Bone* jester::Scene::getBone(Bone::BoneId bone) {
 	if (bone < Bone::BONE_COUNT && bone >= 0)
-		return kSkeleton[bone];
+		return kSkeletonA[bone];
 	return NULL;
 }
 
 jester::Bone* jester::Scene::getRootBone() {
-	return kSkeleton[Bone::ROOT];
+	return kSkeletonA[Bone::ROOT];
 }
 
 jester::FusionBone** jester::Scene::buildSkeleton() {
@@ -55,16 +55,45 @@ jester::FusionBone** jester::Scene::buildSkeleton() {
 	return skeleton;
 }
 
+void jester::Scene::beginSkeletonUpdate() {
+	kSwapMutex.lock();
+}
+
+void jester::Scene::finishSkeletonUpdate() {
+	kSwapMutex.unlock();
+}
+
+void jester::Scene::refreshSkeleton() {
+	kSwapMutex.lock();
+
+	for (int i = 0; i < Bone::BONE_COUNT; i++)
+		kSkeletonB[i]->setChildren(kSkeletonA[i]->children());
+
+	FusionBone **temp = kSkeletonA;
+	kSkeletonA = kSkeletonB;
+	kSkeletonB = temp;
+
+	kFuser->setSkeletonBones(kSkeletonB);
+
+	kSwapMutex.unlock();
+}
+
 jester::Scene::Scene(DataFusionModule *fuser) : SceneGraphNode(NULL) {
 	kOrientation = glm::quat_cast(glm::mat4(1));
 	kPosition = glm::vec3(0);
+	kFuser = fuser;
 
-	kSkeleton = buildSkeleton();
+	kSkeletonA = buildSkeleton();
+	kSkeletonB = buildSkeleton();
 
-	fuser->setSkeletonBones(kSkeleton);
+	kFuser->setSkeletonBones(kSkeletonB);
 }
 
 jester::Scene::~Scene() {
-	for (int i = 0; i < Bone::BONE_COUNT; i++)
-		delete kSkeleton[i];
+	for (int i = 0; i < Bone::BONE_COUNT; i++) {
+		delete kSkeletonA[i];
+		delete kSkeletonB[i];
+	}
+	delete[] kSkeletonA;
+	delete[] kSkeletonB;
 }
