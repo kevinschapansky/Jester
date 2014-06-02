@@ -49,6 +49,7 @@ namespace jester {
 		Scene *kSceneRoot;
 
 		virtual void setBoneDataFromEndpoints(FusionBone *bone, glm::vec3 startPos, glm::vec3 endPos, float confidence);
+		virtual glm::quat getQuaternionFromEndpoints(glm::vec3 startPos, glm::vec3 endPos);
 		virtual std::map<Bone::BoneId, BoneFusionData> jointDataToBoneData(SceneGraphNode *positionParent,
 				const std::map<Bone::JointId, JointFusionData> joints);
 		virtual std::map<Bone::BoneId, FusionBone> jointsToParentSpaceBones(SceneGraphNode *positionParent,

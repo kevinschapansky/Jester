@@ -1,8 +1,9 @@
 #include "BasicDataFuser.h"
 
 const int jester::BasicDataFuser::HistoryLength = 50;
-const int jester::BasicDataFuser::UpdateHertz = 100;
+const int jester::BasicDataFuser::UpdateHertz = 30;
 const int jester::BasicDataFuser::MaxRetrievalDistance = 10;
+const float jester::BasicDataFuser::FusionLowerThreshold = 0.01;
 
 jester::BasicDataFuser::BasicDataFuser() {
 	kNewestInfo = 0;
@@ -37,6 +38,7 @@ void jester::BasicDataFuser::startFusion() {
 
 void jester::BasicDataFuser::newData(Sensor *sensor, std::map<Bone::BoneId, BoneFusionData> data) {
 	kHistoryMutex.lock();
+
 	kBoneHistory[kNewestInfo].rawBoneData[sensor] = data;
 	kHistoryMutex.unlock();
 }
@@ -97,12 +99,34 @@ void jester::BasicDataFuser::insertBoneDataIntoFrame(int frame, Sensor* sensor, 
 
 		if (fusionSlot != kBoneHistory[frame].fusedBoneData.end()) {
 			BoneFusionData existingData = fusionSlot->second;
+
+			bool merged = false;
+
+			if (existingData.confidence < FusionLowerThreshold &&
+					fusedData.confidence > FusionLowerThreshold) {
+				glm::vec3 endpoint = glm::normalize(glm::vec3(glm::mat4_cast(existingData.orientation) * glm::vec4(0, 0, 1, 0))) * existingData.length;
+				existingData.orientation = getQuaternionFromEndpoints(fusedData.position, endpoint);
+				existingData.confidence = fusedData.confidence;
+				merged = true;
+			} else if (fusedData.confidence < FusionLowerThreshold &&
+					existingData.confidence > FusionLowerThreshold) {
+				glm::vec3 endpoint = glm::normalize(glm::vec3(glm::mat4_cast(fusedData.orientation) * glm::vec4(0, 0, 1, 0))) * fusedData.length;
+				fusedData.orientation = getQuaternionFromEndpoints(existingData.position, endpoint);
+				fusedData.confidence = existingData.confidence;
+				merged = true;
+			}
+
 			float interpolationFactor = fusedData.confidence / (existingData.confidence + fusedData.confidence);
 
 			fusedData.orientation = glm::mix(fusedData.orientation, existingData.orientation, interpolationFactor);
 			fusedData.position = glm::mix(fusedData.position, existingData.position, interpolationFactor);
 			fusedData.length = (fusedData.length + existingData.length) / 2.0;
-			fusedData.confidence = interpolationFactor;
+
+			if (!merged) {
+				fusedData.confidence = interpolationFactor;
+			} else {
+				fusedData.confidence = 0.1337;
+			}
 		}
 		kBoneHistory[frame].fusedBoneData[it->first] = fusedData;
 	}
@@ -123,6 +147,11 @@ std::map<jester::Bone::BoneId, jester::BoneFusionData> jester::BasicDataFuser::f
 		}
 
 		if (kBoneHistory[curInfo].fusedBoneData.count(Bone::intToBoneId(boneId))) {
+
+			if (Bone::intToBoneId(boneId) == Bone::RADIUS_L) {
+				printf("Rad Conf: %f\n", kBoneHistory[curInfo].fusedBoneData.find(Bone::intToBoneId(boneId))->second.confidence);
+			}
+
 			bestSkeleton.insert(*(kBoneHistory[curInfo].fusedBoneData.find(Bone::intToBoneId(boneId))));
 		}
 	}

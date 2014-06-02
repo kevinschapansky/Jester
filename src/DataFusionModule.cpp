@@ -90,6 +90,25 @@ void jester::DataFusionModule::setBoneDataFromEndpoints(FusionBone *bone, glm::v
 	bone->setLength(glm::distance(startPos, endPos));
 }
 
+glm::quat jester::DataFusionModule::getQuaternionFromEndpoints(glm::vec3 startPos, glm::vec3 endPos) {
+	glm::quat newQuat;
+	glm::vec3 boneVector = endPos - startPos;
+	glm::vec3 parentVector(0, 0 , 1);
+	glm::vec3 normvector = glm::normalize(boneVector);
+	float vectorDot = glm::dot(parentVector, normvector);
+	float angle = glm::acos(vectorDot);
+
+	if (vectorDot > 0.9999) {
+		newQuat = glm::quat(glm::vec3(0, 0, 0));
+	} else if (vectorDot < -0.9999) {
+		newQuat = glm::quat(glm::vec3(0, 3.14, 0));
+	} else {
+		glm::vec3 axis = glm::normalize(glm::cross(parentVector, normvector));
+		newQuat = glm::angleAxis(angle, axis);
+	}
+	return newQuat;
+}
+
 std::map<jester::Bone::BoneId, jester::FusionBone> jester::DataFusionModule::boneDataToWorldSpaceBones(const std::map<Bone::BoneId, BoneFusionData> bones) {
 	std::map<Bone::BoneId, FusionBone> worldBones;
 

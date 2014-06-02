@@ -14,14 +14,14 @@
 namespace jester {
 	class LeapCarmineFuser : public BasicDataFuser {
 	public:
-		void newData(Sensor *sensor, std::map<Bone::BoneId, BoneFusionData> data);
-		void newData(Sensor *sensor, std::map<Bone::JointId, JointFusionData> data);
-
+		virtual void newData(Sensor *sensor, std::map<Bone::JointId, JointFusionData> data);
 		void setCarmine(Sensor *carmine);
 		void setLeap(Sensor *leap);
 
 		LeapCarmineFuser();
 		~LeapCarmineFuser();
+	protected:
+		virtual void insertBoneDataIntoFrame(int frame, Sensor* sensor, std::map<Bone::BoneId, BoneFusionData> bones);
 	private:
 		static const int JointsPerHand;
 		static const float SwitchDelta;

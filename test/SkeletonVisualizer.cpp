@@ -23,7 +23,7 @@ extern "C" void KeyDown(unsigned char key, int x, int y);
 extern "C" void KeyUp(unsigned char key, int x, int y);
 extern "C" void MousePosition(int x, int y);
 
-#define NO_CARMINE
+//#define NO_CARMINE
 //#define NO_LEAP
 
 class SkeletonVisualizer {
@@ -74,16 +74,18 @@ public:
 
 		#ifndef NO_CARMINE
 			kCarmine = jester::PrimeSenseCarmineFactory::CreateCarmineSensor(kScene, kController);
-			glm::quat carmineOrientation = glm::angleAxis(3.14f, glm::vec3(0, 1, 0));
-			carmineOrientation = glm::rotate(carmineOrientation, 3.14f/16.f, glm::vec3(1, 0, 0));
+			glm::quat carmineOrientation = glm::angleAxis(0.f, glm::vec3(0, 0, 1));
+			carmineOrientation = glm::rotate(carmineOrientation, 3.14f * 4.f/32.f, glm::vec3(1, 0, 0));
+			carmineOrientation = glm::rotate(carmineOrientation, 3.14f * 1.f/32.f, glm::vec3(0, 1, 0));
 			kCarmine->setOrientation(carmineOrientation);
-			kCarmine->setPosition(glm::vec3(0, .9144f, .7112f));
+			kCarmine->setPosition(glm::vec3(0, .9144f, -0.4572f));
 			kFuser->setCarmine(kCarmine);
 		#endif 
 
 		#ifndef NO_LEAP
 			kLeap = jester::LeapMotionFactory::CreateLeapSensor(kScene, kController);
-			kLeap->setOrientation(glm::angleAxis(3.14f, glm::vec3(0, 1, 0)));
+			glm::quat leapOrientation = glm::angleAxis(0.f, glm::vec3(0, 0, 1));
+			kLeap->setOrientation(leapOrientation);
 			kLeap->setPosition(glm::vec3(0, .2286f, 0.9398f));
 			kFuser->setLeap(kLeap);
 		#endif
@@ -145,7 +147,7 @@ public:
 		drawJoints();
 		drawBones();
 
-		drawBalls(kPhysics->update(kScene->getBone(jester::Bone::BoneId::SKULL)->getWorldPosition() + glm::vec3(0, 1.0, kHands[0].position.z), kHands));
+		drawBalls(kPhysics->update(kScene->getBone(jester::Bone::BoneId::SKULL)->getWorldPosition() + glm::vec3(0, 1.0, -0.5), kHands));
 
 		//disable the shader
 		glUseProgram(0);	
@@ -485,6 +487,9 @@ private:
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, kBallMesh->IndexHandle);
 		glUniform1f(kRenderData.uMaterial, 1.f);
 		glUniform3f(kRenderData.uColor, 0.1f, 0.7f, 0.1f);
+
+		SetModel(glm::translate(glm::mat4(1), glm::vec3(0,0,0)));
+		glDrawElements(GL_TRIANGLES, kBallMesh->IndexBufferLength, GL_UNSIGNED_SHORT, 0);
 
 		for (unsigned int i = 0; i < balls.size(); i++) {
 			SetModel(glm::translate(glm::mat4(1), balls[i].position));

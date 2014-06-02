@@ -40,6 +40,7 @@ namespace jester {
 		static const int HistoryLength;
 		static const int UpdateHertz;
 		static const int MaxRetrievalDistance;
+		static const float FusionLowerThreshold;
 
 		std::thread *kSkeletonUpdateThread;
 
@@ -55,13 +56,13 @@ namespace jester {
 		std::vector<Sensor *> kSensors;
 		std::map<Bone::BoneId, Filter *> kFilters;
 
-		void initializeHistory();
-		void initializeFilters();
-		void updateSkeleton();
-		void fuseBoneDataInFrame(int frame);
-		void insertBoneDataIntoFrame(int frame, Sensor* sensor, std::map<Bone::BoneId, BoneFusionData> bones);
-		std::map<Bone::BoneId, BoneFusionData> findBestSkeletonFromFrame(int frame);
-		void advanceHistoryFrame();
+		virtual void initializeHistory();
+		virtual void initializeFilters();
+		virtual void updateSkeleton();
+		virtual void fuseBoneDataInFrame(int frame);
+		virtual void insertBoneDataIntoFrame(int frame, Sensor* sensor, std::map<Bone::BoneId, BoneFusionData> bones);
+		virtual std::map<Bone::BoneId, BoneFusionData> findBestSkeletonFromFrame(int frame);
+		virtual void advanceHistoryFrame();
 	private:
 		double getWallTime() {
 			struct timeval time;

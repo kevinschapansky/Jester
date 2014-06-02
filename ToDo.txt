@@ -1,7 +1,8 @@
 TODO:
 
 Imm:
- - Fix bone conflict for half known bones
+ - Fix resolution from two bones
+ - Allow lookback to do two bone resolution on 0 conf in best skeleton
  - Implement hand swap
 
 Carmine:
