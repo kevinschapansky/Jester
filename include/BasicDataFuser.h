@@ -61,6 +61,7 @@ namespace jester {
 		virtual void updateSkeleton();
 		virtual void fuseBoneDataInFrame(int frame);
 		virtual void insertBoneDataIntoFrame(int frame, Sensor* sensor, std::map<Bone::BoneId, BoneFusionData> bones);
+		virtual void mergeKnownBoneWithAssumedBone(BoneFusionData *boneA, BoneFusionData *boneB);
 		virtual std::map<Bone::BoneId, BoneFusionData> findBestSkeletonFromFrame(int frame);
 		virtual void advanceHistoryFrame();
 	private:

@@ -1,7 +1,7 @@
 #include "BasicDataFuser.h"
 
 const int jester::BasicDataFuser::HistoryLength = 50;
-const int jester::BasicDataFuser::UpdateHertz = 30;
+const int jester::BasicDataFuser::UpdateHertz = 60;
 const int jester::BasicDataFuser::MaxRetrievalDistance = 10;
 const float jester::BasicDataFuser::FusionLowerThreshold = 0.01;
 
@@ -37,6 +37,16 @@ void jester::BasicDataFuser::startFusion() {
 }
 
 void jester::BasicDataFuser::newData(Sensor *sensor, std::map<Bone::BoneId, BoneFusionData> data) {
+	/*if (data.find(Bone::RADIUS_L) != data.end()) {
+		glm::vec3 lwPos = getEndpointFromBoneData(data.find(Bone::RADIUS_L)->second);
+		lwPos = glm::vec3(sensor->getWorldTransform() * glm::vec4(lwPos, 1));
+		if (sensor == kSensors[1]) {
+			printf("Leap B: %2.4f %2.4f %2.4f\n", lwPos.x, lwPos.y, lwPos.z);
+		} else {
+			printf("Carmine B: %2.4f %2.4f %2.4f\n", lwPos.x, lwPos.y, lwPos.z);
+		}
+	}*/
+
 	kHistoryMutex.lock();
 
 	kBoneHistory[kNewestInfo].rawBoneData[sensor] = data;
@@ -100,35 +110,35 @@ void jester::BasicDataFuser::insertBoneDataIntoFrame(int frame, Sensor* sensor, 
 		if (fusionSlot != kBoneHistory[frame].fusedBoneData.end()) {
 			BoneFusionData existingData = fusionSlot->second;
 
-			bool merged = false;
-
-			if (existingData.confidence < FusionLowerThreshold &&
-					fusedData.confidence > FusionLowerThreshold) {
-				glm::vec3 endpoint = glm::normalize(glm::vec3(glm::mat4_cast(existingData.orientation) * glm::vec4(0, 0, 1, 0))) * existingData.length;
-				existingData.orientation = getQuaternionFromEndpoints(fusedData.position, endpoint);
-				existingData.confidence = fusedData.confidence;
-				merged = true;
-			} else if (fusedData.confidence < FusionLowerThreshold &&
-					existingData.confidence > FusionLowerThreshold) {
-				glm::vec3 endpoint = glm::normalize(glm::vec3(glm::mat4_cast(fusedData.orientation) * glm::vec4(0, 0, 1, 0))) * fusedData.length;
-				fusedData.orientation = getQuaternionFromEndpoints(existingData.position, endpoint);
-				fusedData.confidence = existingData.confidence;
-				merged = true;
-			}
+			mergeKnownBoneWithAssumedBone(&existingData, &fusedData);
 
 			float interpolationFactor = fusedData.confidence / (existingData.confidence + fusedData.confidence);
 
-			fusedData.orientation = glm::mix(fusedData.orientation, existingData.orientation, interpolationFactor);
-			fusedData.position = glm::mix(fusedData.position, existingData.position, interpolationFactor);
-			fusedData.length = (fusedData.length + existingData.length) / 2.0;
+			//fusedData.orientation = glm::mix(fusedData.orientation, existingData.orientation, interpolationFactor);
+			//fusedData.position = glm::mix(fusedData.position, existingData.position, interpolationFactor);
+			//fusedData.length = (fusedData.length + existingData.length) / 2.0;
 
-			if (!merged) {
-				fusedData.confidence = interpolationFactor;
-			} else {
-				fusedData.confidence = 0.1337;
-			}
+			//fusedData.confidence = interpolationFactor;
 		}
 		kBoneHistory[frame].fusedBoneData[it->first] = fusedData;
+	}
+}
+
+void jester::BasicDataFuser::mergeKnownBoneWithAssumedBone(BoneFusionData *boneA, BoneFusionData *boneB) {
+	if (boneA->confidence < FusionLowerThreshold &&
+			boneB->confidence > FusionLowerThreshold) {
+		glm::vec3 endpoint = getEndpointFromBoneData(*boneA);
+		boneA->orientation = getQuaternionFromEndpoints(boneB->position, endpoint);
+		boneA->confidence = boneB->confidence;
+		boneA->length = glm::distance(boneB->position, endpoint);
+		boneA->position = boneB->position;
+	} else if (boneB->confidence < FusionLowerThreshold &&
+			boneA->confidence > FusionLowerThreshold) {
+		glm::vec3 endpoint = getEndpointFromBoneData(*boneB);
+		boneB->orientation = getQuaternionFromEndpoints(boneA->position, endpoint);
+		boneB->confidence = boneA->confidence;
+		boneB->length = glm::distance(boneA->position, endpoint);
+		boneB->position = boneA->position;
 	}
 }
 
@@ -147,12 +157,28 @@ std::map<jester::Bone::BoneId, jester::BoneFusionData> jester::BasicDataFuser::f
 		}
 
 		if (kBoneHistory[curInfo].fusedBoneData.count(Bone::intToBoneId(boneId))) {
+			BoneFusionData bestFit = kBoneHistory[curInfo].fusedBoneData.find(Bone::intToBoneId(boneId))->second;
 
-			if (Bone::intToBoneId(boneId) == Bone::RADIUS_L) {
-				printf("Rad Conf: %f\n", kBoneHistory[curInfo].fusedBoneData.find(Bone::intToBoneId(boneId))->second.confidence);
+			if (bestFit.confidence < FusionLowerThreshold) {
+				curInfo -= 1;
+				curInfo = (curInfo % HistoryLength + HistoryLength) % HistoryLength;
+				backSteps++;
+
+				do {
+					curInfo -= 1;
+					curInfo = (curInfo % HistoryLength + HistoryLength) % HistoryLength;
+					backSteps++;
+				} while (backSteps < MaxRetrievalDistance &&
+						(!(kBoneHistory[curInfo].fusedBoneData.count(Bone::intToBoneId(boneId))) ||
+						kBoneHistory[curInfo].fusedBoneData.find(Bone::intToBoneId(boneId))->second.confidence < FusionLowerThreshold));
+
+				if (kBoneHistory[curInfo].fusedBoneData.count(Bone::intToBoneId(boneId)) &&
+						kBoneHistory[curInfo].fusedBoneData.find(Bone::intToBoneId(boneId))->second.confidence > FusionLowerThreshold) {
+					mergeKnownBoneWithAssumedBone(&bestFit, &(kBoneHistory[curInfo].fusedBoneData.find(Bone::intToBoneId(boneId))->second));
+				}
 			}
 
-			bestSkeleton.insert(*(kBoneHistory[curInfo].fusedBoneData.find(Bone::intToBoneId(boneId))));
+			bestSkeleton.insert(std::pair<Bone::BoneId, BoneFusionData>(Bone::intToBoneId(boneId), bestFit));
 		}
 	}
 	return bestSkeleton;

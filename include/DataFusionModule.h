@@ -6,6 +6,7 @@
 #include <map>
 #include <glm/vec3.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <cfloat>
 #include <vector>
@@ -50,6 +51,7 @@ namespace jester {
 
 		virtual void setBoneDataFromEndpoints(FusionBone *bone, glm::vec3 startPos, glm::vec3 endPos, float confidence);
 		virtual glm::quat getQuaternionFromEndpoints(glm::vec3 startPos, glm::vec3 endPos);
+		virtual glm::vec3 getEndpointFromBoneData(const BoneFusionData bone);
 		virtual std::map<Bone::BoneId, BoneFusionData> jointDataToBoneData(SceneGraphNode *positionParent,
 				const std::map<Bone::JointId, JointFusionData> joints);
 		virtual std::map<Bone::BoneId, FusionBone> jointsToParentSpaceBones(SceneGraphNode *positionParent,

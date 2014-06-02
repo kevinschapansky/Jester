@@ -99,14 +99,18 @@ glm::quat jester::DataFusionModule::getQuaternionFromEndpoints(glm::vec3 startPo
 	float angle = glm::acos(vectorDot);
 
 	if (vectorDot > 0.9999) {
-		newQuat = glm::quat(glm::vec3(0, 0, 0));
+		newQuat = glm::angleAxis(0.f, glm::vec3(0, 0, 1));
 	} else if (vectorDot < -0.9999) {
-		newQuat = glm::quat(glm::vec3(0, 3.14, 0));
+		newQuat = glm::angleAxis(3.14f, glm::vec3(0, 0, 1));
 	} else {
 		glm::vec3 axis = glm::normalize(glm::cross(parentVector, normvector));
 		newQuat = glm::angleAxis(angle, axis);
 	}
 	return newQuat;
+}
+
+glm::vec3 jester::DataFusionModule::getEndpointFromBoneData(const BoneFusionData bone) {
+	return bone.position + glm::normalize(glm::vec3(glm::rotate(bone.orientation, glm::vec4(0, 0, 1, 0)))) * bone.length;
 }
 
 std::map<jester::Bone::BoneId, jester::FusionBone> jester::DataFusionModule::boneDataToWorldSpaceBones(const std::map<Bone::BoneId, BoneFusionData> bones) {
