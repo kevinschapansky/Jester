@@ -17,14 +17,14 @@ void jester::LeapCarmineFuser::newData(Sensor *sensor, std::map<Bone::JointId, J
 	BasicDataFuser::newData(sensor, data);
 }
 
-void jester::LeapCarmineFuser::setCarmine(Sensor *carmine) {
+void jester::LeapCarmineFuser::setCarmine(Sensor *carmine, std::map<jester::Bone::BoneId, double> carmineConfMap) {
 	kCarmine = carmine;
-	BasicDataFuser::addSensor(carmine);
+	BasicDataFuser::addSensor(carmine, carmineConfMap);
 }
 
-void jester::LeapCarmineFuser::setLeap(Sensor *leap) {
+void jester::LeapCarmineFuser::setLeap(Sensor *leap, std::map<jester::Bone::BoneId, double> leapConfMap) {
 	kLeap = leap;
-	BasicDataFuser::addSensor(leap);
+	BasicDataFuser::addSensor(leap, leapConfMap);
 }
 
 void jester::LeapCarmineFuser::insertBoneDataIntoFrame(int frame, Sensor* sensor, std::map<Bone::BoneId, BoneFusionData> bones) {

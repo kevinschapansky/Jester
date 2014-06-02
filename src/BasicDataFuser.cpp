@@ -57,8 +57,9 @@ void jester::BasicDataFuser::newData(Sensor *sensor, std::map<Bone::JointId, Joi
 	newData(sensor, jointDataToBoneData(sensor, data));
 }
 
-void jester::BasicDataFuser::addSensor(Sensor* sensor) {
+void jester::BasicDataFuser::addSensor(Sensor *sensor, std::map<Bone::BoneId, double> boneConfidence) {
 	kSensors.push_back(sensor);
+	kSensorConfidences.insert(std::pair<Sensor *, std::map<Bone::BoneId, double>>(sensor, boneConfidence));
 }
 
 void jester::BasicDataFuser::updateSkeleton() {

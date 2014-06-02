@@ -24,7 +24,7 @@ namespace jester {
 		virtual void newData(Sensor *sensor, std::map<Bone::BoneId, BoneFusionData> data);
 		virtual void newData(Sensor *sensor, std::map<Bone::JointId, JointFusionData> data);
 
-		virtual void addSensor(Sensor *sensor);
+		virtual void addSensor(Sensor *sensor, std::map<Bone::BoneId, double> boneConfidence);
 		virtual void startFusion();
 
 		BasicDataFuser();
@@ -54,6 +54,7 @@ namespace jester {
 		double kInitClock;
 
 		std::vector<Sensor *> kSensors;
+		std::map<Sensor*, std::map<Bone::BoneId, double>> kSensorConfidences;
 		std::map<Bone::BoneId, Filter *> kFilters;
 
 		virtual void initializeHistory();

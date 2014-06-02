@@ -15,8 +15,8 @@ namespace jester {
 	class LeapCarmineFuser : public BasicDataFuser {
 	public:
 		virtual void newData(Sensor *sensor, std::map<Bone::JointId, JointFusionData> data);
-		void setCarmine(Sensor *carmine);
-		void setLeap(Sensor *leap);
+		void setCarmine(Sensor *carmine, std::map<jester::Bone::BoneId, double> carmineConfMap);
+		void setLeap(Sensor *leap, std::map<jester::Bone::BoneId, double> leapConfMap);
 
 		LeapCarmineFuser();
 		~LeapCarmineFuser();

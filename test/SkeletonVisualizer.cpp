@@ -79,7 +79,14 @@ public:
 			carmineOrientation = glm::rotate(carmineOrientation, 3.14f * 1.f/32.f, glm::vec3(0, 1, 0));
 			kCarmine->setOrientation(carmineOrientation);
 			kCarmine->setPosition(glm::vec3(0, .9144f, -0.4572f));
-			kFuser->setCarmine(kCarmine);
+
+			std::map<jester::Bone::BoneId, double> carmineConfMap;
+
+			for (int i = jester::Bone::ROOT; i <= jester::Bone::TIBIA_R; i++) {
+				carmineConfMap.insert(std::pair<jester::Bone::BoneId, double>(jester::Bone::intToBoneId(i), 1.f));
+			}
+
+			kFuser->setCarmine(kCarmine, carmineConfMap);
 		#endif 
 
 		#ifndef NO_LEAP
@@ -87,7 +94,16 @@ public:
 			glm::quat leapOrientation = glm::angleAxis(0.f, glm::vec3(0, 0, 1));
 			kLeap->setOrientation(leapOrientation);
 			kLeap->setPosition(glm::vec3(0, .2286f, 0.9398f));
-			kFuser->setLeap(kLeap);
+
+			std::map<jester::Bone::BoneId, double> leapConfMap;
+
+			for (int i = jester::Bone::PHALANX_L_1; i <= jester::Bone::PHALANX_R_5; i++) {
+				leapConfMap.insert(std::pair<jester::Bone::BoneId, double>(jester::Bone::intToBoneId(i), 1.f));
+			}
+			leapConfMap.insert(std::pair<jester::Bone::BoneId, double>(jester::Bone::RADIUS_L, 1.f));
+			leapConfMap.insert(std::pair<jester::Bone::BoneId, double>(jester::Bone::RADIUS_R, 1.f));
+
+			kFuser->setLeap(kLeap, leapConfMap);
 		#endif
 
 		glutInit(argc, argv);
