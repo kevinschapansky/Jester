@@ -455,16 +455,16 @@ private:
 				bool bounce;
 
 				if (curBone->getType() == jester::Bone::RADIUS_L) {
-					bounce = kScene->getBone(jester::Bone::BoneId::PHALANX_L_1)->getPosition().x > 0;
+					bounce = kScene->getBone(jester::Bone::BoneId::PHALANX_L_1)->getPosition().x >
+							kScene->getBone(jester::Bone::BoneId::PHALANX_L_3)->getPosition().x;
 				} else {
-					bounce = kScene->getBone(jester::Bone::BoneId::PHALANX_R_1)->getPosition().x < 0;
+					bounce = kScene->getBone(jester::Bone::BoneId::PHALANX_R_1)->getPosition().x <
+							kScene->getBone(jester::Bone::BoneId::PHALANX_R_3)->getPosition().x;
 				}
 
 				kHands.push_back(
 						PhysicsInteractor(
-								jester::SceneGraphNode::positionSpaceConversion(curBone->getPosition() + glm::vec3(0, 0, curBone->getLength()),
-										curBone,
-										kScene),
+								curBone->getWorldPosition() + glm::normalize(glm::vec3(glm::rotate(curBone->getWorldOrientation(), glm::vec4(0, 0, 1, 0)))) * curBone->getLength(),
 								0.2,
 								bounce));
 			}

@@ -2,7 +2,7 @@ TODO:
 
 Imm:
  - Actually interpolate?
- - Fix how SkVi is getting wrist pos
+ - Fix how SkVi chooses bounce or delete
 
 Carmine:
 

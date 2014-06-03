@@ -55,12 +55,16 @@ void jester::LeapCarmineFuser::handleSwaps(std::map<Sensor *, std::map<Bone::Bon
 
 	//see if a swap is super helpful
 	if (CLIt != carmineData.end() && CRIt != carmineData.end()) {
-		if (LLIt != leapData.end()) {
+		if (LLIt != leapData.end() && LRIt == leapData.end()) {
 			if (lNo > SwitchDelta && lYes < SwitchDelta) {
 				swapEnabled = true;
 			}
-		} else if (LRIt != leapData.end()) {
+		} else if (LRIt != leapData.end() && LLIt == leapData.end()) {
 			if (rNo > SwitchDelta && rYes < SwitchDelta) {
+				swapEnabled = true;
+			}
+		} else if (LLIt != leapData.end() && LRIt != leapData.end()) {
+			if (lYes < lNo && rYes < rNo) {
 				swapEnabled = true;
 			}
 		}
