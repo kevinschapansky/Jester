@@ -452,14 +452,20 @@ private:
 
 			if (curBone->getType() == jester::Bone::RADIUS_L ||
 					curBone->getType() == jester::Bone::RADIUS_R) {
-				bool bounce;
+				bool bounce = false;
 
-				if (curBone->getType() == jester::Bone::RADIUS_L) {
-					bounce = kScene->getBone(jester::Bone::BoneId::PHALANX_L_1)->getPosition().x >
-							kScene->getBone(jester::Bone::BoneId::PHALANX_L_3)->getPosition().x;
-				} else {
-					bounce = kScene->getBone(jester::Bone::BoneId::PHALANX_R_1)->getPosition().x <
-							kScene->getBone(jester::Bone::BoneId::PHALANX_R_3)->getPosition().x;
+				int startFinger;
+
+				if (curBone->getType() == jester::Bone::RADIUS_L)
+					startFinger = jester::Bone::PHALANX_L_1;
+				else
+					startFinger = jester::Bone::PHALANX_R_1;
+
+				for (int i = 0; i < 5; i++, startFinger++) {
+					if (kScene->getBone(jester::Bone::intToBoneId(startFinger))->getConfidence() > 0.01) {
+						bounce = true;
+						break;
+					}
 				}
 
 				kHands.push_back(

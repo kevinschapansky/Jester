@@ -1,7 +1,7 @@
 TODO:
 
 Imm:
- - Fix how SkVi chooses bounce or delete
+ - Fix particle filter?
 
 Carmine:
 
