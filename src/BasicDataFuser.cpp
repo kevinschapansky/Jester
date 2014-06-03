@@ -110,6 +110,8 @@ std::map<jester::Bone::BoneId, jester::BoneFusionData> jester::BasicDataFuser::f
 		sensorData.insert(std::pair<Sensor *, std::map<Bone::BoneId, BoneFusionData>>(kSensors[curSensor], curSensorBoneMap));
 	}
 
+	handleSwaps(&sensorData);
+
 	//merge the sensor data sets
 	for (std::map<Sensor *, std::map<Bone::BoneId, BoneFusionData>>::iterator dataIt = sensorData.begin();
 			dataIt != sensorData.end(); dataIt++) {
@@ -117,6 +119,10 @@ std::map<jester::Bone::BoneId, jester::BoneFusionData> jester::BasicDataFuser::f
 	}
 
 	return bestData;
+}
+
+void jester::BasicDataFuser::handleSwaps(std::map<Sensor *, std::map<Bone::BoneId, BoneFusionData>> *dataset) {
+	//Dont do anything
 }
 
 void jester::BasicDataFuser::insertBoneDataIntoMap(std::map<Bone::BoneId, BoneFusionData> *map, Sensor* sensor, std::map<Bone::BoneId, BoneFusionData> bones) {

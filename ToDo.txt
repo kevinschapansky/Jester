@@ -1,8 +1,8 @@
 TODO:
 
 Imm:
- - Implement hand swap
  - Actually interpolate?
+ - Fix how SkVi is getting wrist pos
 
 Carmine:
 

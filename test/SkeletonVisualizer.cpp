@@ -465,7 +465,7 @@ private:
 								jester::SceneGraphNode::positionSpaceConversion(curBone->getPosition() + glm::vec3(0, 0, curBone->getLength()),
 										curBone,
 										kScene),
-								0.075,
+								0.2,
 								bounce));
 			}
 

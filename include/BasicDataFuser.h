@@ -60,6 +60,7 @@ namespace jester {
 		virtual void initializeFilters();
 		virtual void updateSkeleton();
 		virtual std::map<Bone::BoneId, BoneFusionData> fuseBoneDataFromStartFrame(int frame);
+		virtual void handleSwaps(std::map<Sensor *, std::map<Bone::BoneId, BoneFusionData>> *dataset);
 		virtual void insertBoneDataIntoMap(std::map<Bone::BoneId, BoneFusionData> *map, Sensor* sensor, std::map<Bone::BoneId, BoneFusionData> bones);
 		virtual void mergeKnownBoneWithAssumedBone(BoneFusionData *boneA, BoneFusionData *boneB);
 		virtual jester::BoneFusionData findSensorBoneFromFrame(int frame, Sensor *sensor, Bone::BoneId boneId);
