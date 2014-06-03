@@ -27,8 +27,8 @@ void jester::LeapCarmineFuser::setLeap(Sensor *leap, std::map<jester::Bone::Bone
 	BasicDataFuser::addSensor(leap, leapConfMap);
 }
 
-void jester::LeapCarmineFuser::insertBoneDataIntoFrame(int frame, Sensor* sensor, std::map<Bone::BoneId, BoneFusionData> bones) {
-	std::map<Bone::BoneId, BoneFusionData>::iterator existingLeft = kBoneHistory[frame].fusedBoneData.find(Bone::RADIUS_L);
+std::map<jester::Bone::BoneId, jester::BoneFusionData> jester::LeapCarmineFuser::fuseBoneDataFromStartFrame(int frame) {
+	/*std::map<Bone::BoneId, BoneFusionData>::iterator existingLeft = kBoneHistory[frame].fusedBoneData.find(Bone::RADIUS_L);
 	std::map<Bone::BoneId, BoneFusionData>::iterator existingRight = kBoneHistory[frame].fusedBoneData.find(Bone::RADIUS_R);
 	std::map<Bone::BoneId, BoneFusionData>::iterator newLeft = bones.find(Bone::RADIUS_L);
 	std::map<Bone::BoneId, BoneFusionData>::iterator newRight = bones.find(Bone::RADIUS_R);
@@ -52,8 +52,8 @@ void jester::LeapCarmineFuser::insertBoneDataIntoFrame(int frame, Sensor* sensor
 		printf("Unknown sensor reporting, this fusion implementation only supports the LeapMotion and the Carmine\n");
 		exit(1);
 	}
-
-	BasicDataFuser::insertBoneDataIntoFrame(frame, sensor, bones);
+*/
+	return BasicDataFuser::fuseBoneDataFromStartFrame(frame);
 }
 
 jester::LeapCarmineFuser::LeapCarmineFuser() {

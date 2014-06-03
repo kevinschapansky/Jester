@@ -1,8 +1,8 @@
 TODO:
 
 Imm:
- - Allow history lookback to sync fusion
  - Implement hand swap
+ - Actually interpolate?
 
 Carmine:
 

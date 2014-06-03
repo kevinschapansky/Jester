@@ -21,7 +21,7 @@ namespace jester {
 		LeapCarmineFuser();
 		~LeapCarmineFuser();
 	protected:
-		virtual void insertBoneDataIntoFrame(int frame, Sensor* sensor, std::map<Bone::BoneId, BoneFusionData> bones);
+		virtual std::map<Bone::BoneId, BoneFusionData> fuseBoneDataFromStartFrame(int frame);
 	private:
 		static const int JointsPerHand;
 		static const float SwitchDelta;

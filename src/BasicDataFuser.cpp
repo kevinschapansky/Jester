@@ -19,8 +19,10 @@ void jester::BasicDataFuser::initializeHistory() {
 	kBoneHistory = new BonePositionHistory[HistoryLength];
 
 	for (int historyIx = 0; historyIx < HistoryLength; historyIx++) {
-		kBoneHistory[historyIx].fusedBoneData.clear();
-		kBoneHistory[historyIx].rawBoneData.clear();
+		for (unsigned int sensorIx = 0; sensorIx < kSensors.size(); sensorIx++) {
+			std::map<Bone::BoneId, BoneFusionData> cleanMap;
+			kBoneHistory[historyIx].rawBoneData[kSensors[sensorIx]] = cleanMap;
+		}
 	}
 }
 
@@ -77,9 +79,7 @@ void jester::BasicDataFuser::updateSkeleton() {
 		advanceHistoryFrame();
 		kHistoryMutex.unlock();
 
-		fuseBoneDataInFrame(startFrame);
-
-		bestSkeleton = findBestSkeletonFromFrame(startFrame);
+		bestSkeleton = fuseBoneDataFromStartFrame(startFrame);
 
 		kSceneRoot->beginSkeletonUpdate();
 		setSkeletonFromBoneData(bestSkeleton);
@@ -91,24 +91,45 @@ void jester::BasicDataFuser::updateSkeleton() {
 	} while (kContinueUpdating);
 }
 
-void jester::BasicDataFuser::fuseBoneDataInFrame(int frame) {
-	for (std::map<Sensor*, std::map<Bone::BoneId, BoneFusionData>>::iterator it = kBoneHistory[frame].rawBoneData.begin();
-			it != kBoneHistory[frame].rawBoneData.end(); it++) {
-		insertBoneDataIntoFrame(frame, it->first, it->second);
+std::map<jester::Bone::BoneId, jester::BoneFusionData> jester::BasicDataFuser::fuseBoneDataFromStartFrame(int frame) {
+	std::map<Bone::BoneId, BoneFusionData> bestData;
+	std::map<Sensor *, std::map<Bone::BoneId, BoneFusionData>> sensorData;
+
+	for (unsigned int curSensor = 0; curSensor < kSensors.size(); curSensor++) {
+		std::map<Bone::BoneId, double> curSensorConfs = kSensorConfidences.find(kSensors[curSensor])->second;
+		std::map<Bone::BoneId, BoneFusionData> curSensorBoneMap;
+
+		for (int curBone = Bone::ROOT; curBone < Bone::BONE_COUNT; curBone++) {
+			if (curSensorConfs.find(Bone::intToBoneId(curBone)) != curSensorConfs.end()) {
+				BoneFusionData foundData = findSensorBoneFromFrame(frame, kSensors[curSensor], Bone::intToBoneId(curBone));
+
+				if (foundData.confidence >= 0.0)
+					curSensorBoneMap.insert(std::pair<Bone::BoneId, BoneFusionData>(Bone::intToBoneId(curBone), foundData));
+			}
+		}
+		sensorData.insert(std::pair<Sensor *, std::map<Bone::BoneId, BoneFusionData>>(kSensors[curSensor], curSensorBoneMap));
 	}
+
+	//merge the sensor data sets
+	for (std::map<Sensor *, std::map<Bone::BoneId, BoneFusionData>>::iterator dataIt = sensorData.begin();
+			dataIt != sensorData.end(); dataIt++) {
+		insertBoneDataIntoMap(&bestData, dataIt->first, dataIt->second);
+	}
+
+	return bestData;
 }
 
-void jester::BasicDataFuser::insertBoneDataIntoFrame(int frame, Sensor* sensor, std::map<Bone::BoneId, BoneFusionData> bones) {
+void jester::BasicDataFuser::insertBoneDataIntoMap(std::map<Bone::BoneId, BoneFusionData> *map, Sensor* sensor, std::map<Bone::BoneId, BoneFusionData> bones) {
 	glm::mat4 worldTransform = sensor->getWorldTransform();
 
 	for (std::map<Bone::BoneId, BoneFusionData>::iterator it = bones.begin(); it != bones.end(); it++) {
 		BoneFusionData fusedData = it->second;
-		std::map<Bone::BoneId, BoneFusionData>::iterator fusionSlot = kBoneHistory[frame].fusedBoneData.find(it->first);
+		std::map<Bone::BoneId, BoneFusionData>::iterator fusionSlot = map->find(it->first);
 
 		fusedData.position = glm::vec3(worldTransform * glm::vec4(fusedData.position, 1.0));
 		fusedData.orientation = glm::quat_cast(worldTransform * glm::mat4_cast(fusedData.orientation));
 
-		if (fusionSlot != kBoneHistory[frame].fusedBoneData.end()) {
+		if (fusionSlot != map->end()) {
 			BoneFusionData existingData = fusionSlot->second;
 
 			mergeKnownBoneWithAssumedBone(&existingData, &fusedData);
@@ -121,7 +142,7 @@ void jester::BasicDataFuser::insertBoneDataIntoFrame(int frame, Sensor* sensor, 
 
 			//fusedData.confidence = interpolationFactor;
 		}
-		kBoneHistory[frame].fusedBoneData[it->first] = fusedData;
+		map->operator[](it->first) = fusedData;
 	}
 }
 
@@ -143,46 +164,27 @@ void jester::BasicDataFuser::mergeKnownBoneWithAssumedBone(BoneFusionData *boneA
 	}
 }
 
-std::map<jester::Bone::BoneId, jester::BoneFusionData> jester::BasicDataFuser::findBestSkeletonFromFrame(int frame) {
-	std::map<Bone::BoneId, BoneFusionData> bestSkeleton;
+jester::BoneFusionData jester::BasicDataFuser::findSensorBoneFromFrame(int frame, Sensor *sensor, Bone::BoneId boneId) {
+	BoneFusionData foundBone;
+	int curInfo = frame;
+	int backSteps = 0;
+	std::map<Bone::BoneId, BoneFusionData> curMap;
+	std::map<Bone::BoneId, BoneFusionData>::iterator it;
 
-	for (int boneId = 0; boneId < Bone::BONE_COUNT; boneId++) {
-		int curInfo = frame;
-		int backSteps = 0;
+	foundBone.confidence = -1.0f;
 
-		while (backSteps < MaxRetrievalDistance &&
-				!(kBoneHistory[curInfo].fusedBoneData.count(Bone::intToBoneId(boneId)))) {
-			curInfo -= 1;
-			curInfo = (curInfo % HistoryLength + HistoryLength) % HistoryLength;
-			backSteps++;
-		}
+	do {
+		curMap = kBoneHistory[curInfo].rawBoneData.find(sensor)->second;
+		it = curMap.find(boneId);
+		curInfo -= 1;
+		curInfo = (curInfo % HistoryLength + HistoryLength) % HistoryLength;
+		backSteps++;
+	} while (backSteps <= MaxRetrievalDistance && it == curMap.end());
 
-		if (kBoneHistory[curInfo].fusedBoneData.count(Bone::intToBoneId(boneId))) {
-			BoneFusionData bestFit = kBoneHistory[curInfo].fusedBoneData.find(Bone::intToBoneId(boneId))->second;
-
-			if (bestFit.confidence < FusionLowerThreshold) {
-				curInfo -= 1;
-				curInfo = (curInfo % HistoryLength + HistoryLength) % HistoryLength;
-				backSteps++;
-
-				do {
-					curInfo -= 1;
-					curInfo = (curInfo % HistoryLength + HistoryLength) % HistoryLength;
-					backSteps++;
-				} while (backSteps < MaxRetrievalDistance &&
-						(!(kBoneHistory[curInfo].fusedBoneData.count(Bone::intToBoneId(boneId))) ||
-						kBoneHistory[curInfo].fusedBoneData.find(Bone::intToBoneId(boneId))->second.confidence < FusionLowerThreshold));
-
-				if (kBoneHistory[curInfo].fusedBoneData.count(Bone::intToBoneId(boneId)) &&
-						kBoneHistory[curInfo].fusedBoneData.find(Bone::intToBoneId(boneId))->second.confidence > FusionLowerThreshold) {
-					mergeKnownBoneWithAssumedBone(&bestFit, &(kBoneHistory[curInfo].fusedBoneData.find(Bone::intToBoneId(boneId))->second));
-				}
-			}
-
-			bestSkeleton.insert(std::pair<Bone::BoneId, BoneFusionData>(Bone::intToBoneId(boneId), bestFit));
-		}
+	if (backSteps <= MaxRetrievalDistance && it != curMap.end()) {
+		foundBone = it->second;
 	}
-	return bestSkeleton;
+	return foundBone;
 }
 
 //assumes that mutex lock/unlock is handled by the calling function, otherwise
@@ -191,8 +193,10 @@ void jester::BasicDataFuser::advanceHistoryFrame() {
 	kBoneHistory[kNewestInfo].timestamp = getWallTime();
 	kNewestInfo = (kNewestInfo + 1) % HistoryLength;
 
-	kBoneHistory[kNewestInfo].fusedBoneData.clear();
-	kBoneHistory[kNewestInfo].rawBoneData.clear();
+	for (unsigned int sensorIx = 0; sensorIx < kSensors.size(); sensorIx++) {
+		std::map<Bone::BoneId, BoneFusionData> cleanMap;
+		kBoneHistory[kNewestInfo].rawBoneData[kSensors[sensorIx]] = cleanMap;
+	}
 }
 
 jester::BasicDataFuser::~BasicDataFuser() {

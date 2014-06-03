@@ -34,7 +34,6 @@ namespace jester {
 		typedef struct BonePositionHistory {
 			double timestamp;
 			std::map<Sensor*, std::map<Bone::BoneId, BoneFusionData>> rawBoneData;
-			std::map<Bone::BoneId, BoneFusionData> fusedBoneData;
 		} BonePositionHistory;
 
 		static const int HistoryLength;
@@ -60,10 +59,10 @@ namespace jester {
 		virtual void initializeHistory();
 		virtual void initializeFilters();
 		virtual void updateSkeleton();
-		virtual void fuseBoneDataInFrame(int frame);
-		virtual void insertBoneDataIntoFrame(int frame, Sensor* sensor, std::map<Bone::BoneId, BoneFusionData> bones);
+		virtual std::map<Bone::BoneId, BoneFusionData> fuseBoneDataFromStartFrame(int frame);
+		virtual void insertBoneDataIntoMap(std::map<Bone::BoneId, BoneFusionData> *map, Sensor* sensor, std::map<Bone::BoneId, BoneFusionData> bones);
 		virtual void mergeKnownBoneWithAssumedBone(BoneFusionData *boneA, BoneFusionData *boneB);
-		virtual std::map<Bone::BoneId, BoneFusionData> findBestSkeletonFromFrame(int frame);
+		virtual jester::BoneFusionData findSensorBoneFromFrame(int frame, Sensor *sensor, Bone::BoneId boneId);
 		virtual void advanceHistoryFrame();
 	private:
 		double getWallTime() {
