@@ -140,13 +140,26 @@ void jester::BasicDataFuser::insertBoneDataIntoMap(std::map<Bone::BoneId, BoneFu
 
 			mergeKnownBoneWithAssumedBone(&existingData, &fusedData);
 
-			float interpolationFactor = fusedData.confidence / (existingData.confidence + fusedData.confidence);
+			std::map<Bone::BoneId, double>::iterator confIt = kSensorConfidences.find(sensor)->second.find(it->first);
+			double interpScalar;
 
-			//fusedData.orientation = glm::mix(fusedData.orientation, existingData.orientation, interpolationFactor);
-			//fusedData.position = glm::mix(fusedData.position, existingData.position, interpolationFactor);
-			//fusedData.length = (fusedData.length + existingData.length) / 2.0;
+			if (confIt != kSensorConfidences.find(sensor)->second.end())
+				interpScalar = confIt->second;
+			else
+				interpScalar = 1.0;
 
-			//fusedData.confidence = interpolationFactor;
+			float denom = existingData.confidence + (fusedData.confidence * interpScalar);
+			float interpolationFactor = (fusedData.confidence * interpScalar) /
+					(denom > 0.001f ? denom : 0.001f);
+
+			glm::vec3 existingEndpoint = getEndpointFromBoneData(existingData);
+			glm::vec3 newEndpoint = getEndpointFromBoneData(fusedData);
+			glm::vec3 interpEndpoint = glm::mix(newEndpoint, existingEndpoint, interpolationFactor);
+			fusedData.position = glm::mix(fusedData.position, existingData.position, interpolationFactor);
+			fusedData.orientation = getQuaternionFromEndpoints(fusedData.position, interpEndpoint);
+			fusedData.length = glm::distance(interpEndpoint, fusedData.position);
+
+			fusedData.confidence = interpolationFactor;
 		}
 		map->operator[](it->first) = fusedData;
 	}
