@@ -17,7 +17,7 @@ namespace jester {
 		void setCarmine(Sensor *carmine, std::map<jester::Bone::BoneId, double> carmineConfMap);
 		void setLeap(Sensor *leap, std::map<jester::Bone::BoneId, double> leapConfMap);
 
-		LeapCarmineFuser();
+		LeapCarmineFuser(FilterFactory* filterFactory);
 		~LeapCarmineFuser();
 	protected:
 		virtual void handleSwaps(std::map<Sensor *, std::map<Bone::BoneId, BoneFusionData>> *dataset);
@@ -32,7 +32,9 @@ namespace jester {
 
 	class LeapCarmineFuserFactory : public DataFusionModuleFactory {
 	public:
-		DataFusionModule* CreateFusionModule();
+		DataFusionModule* createFusionModule();
+
+		LeapCarmineFuserFactory(FilterFactory *filterFactory);
 	};
 };
 

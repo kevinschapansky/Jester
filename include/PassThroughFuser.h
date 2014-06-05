@@ -8,7 +8,7 @@ namespace jester {
 	public:
 		void newData(Sensor *sensor, std::map<Bone::BoneId, BoneFusionData> data);
 		void newData(Sensor *sensor, std::map<Bone::JointId, JointFusionData> data);
-		PassThroughFuser();
+		PassThroughFuser(FilterFactory *factory);
 	};
 };
 

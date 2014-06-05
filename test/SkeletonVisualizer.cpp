@@ -9,6 +9,7 @@
 #include "GLSL_helper.h"
 #include "GeometryCreator.h"
 #include "PhysicsEngine.h"
+#include "BoneDoubleExponentialFilter.h"
 
 #include <stdio.h>
 #include <glm/vec3.hpp>
@@ -23,8 +24,8 @@ extern "C" void KeyDown(unsigned char key, int x, int y);
 extern "C" void KeyUp(unsigned char key, int x, int y);
 extern "C" void MousePosition(int x, int y);
 
-//#define NO_CARMINE
-//#define NO_LEAP
+#define NO_CARMINE
+#define NO_LEAP
 
 class SkeletonVisualizer {
 public:
@@ -66,7 +67,8 @@ public:
 	static const int NUM_BONES = 16;
 
 	SkeletonVisualizer(int *argc, char **argv) {
-		jester::DataFusionModuleFactory* dfmf = new jester::LeapCarmineFuserFactory();
+		jester::DoubleExponentialFilterFactory *deff = new jester::DoubleExponentialFilterFactory(0.5, 0.5);
+		jester::DataFusionModuleFactory *dfmf = new jester::LeapCarmineFuserFactory(deff);
 		kController = new jester::Controller(dfmf);
 
 		kScene = kController->getScene();

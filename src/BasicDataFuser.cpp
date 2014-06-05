@@ -5,7 +5,7 @@ const int jester::BasicDataFuser::UpdateHertz = 60;
 const int jester::BasicDataFuser::MaxRetrievalDistance = 10;
 const float jester::BasicDataFuser::FusionLowerThreshold = 0.01;
 
-jester::BasicDataFuser::BasicDataFuser() {
+jester::BasicDataFuser::BasicDataFuser(FilterFactory *filterFactory) : DataFusionModule(filterFactory) {
 	kNewestInfo = 0;
 	kInitClock = getWallTime();
 	kContinueUpdating = false;
@@ -13,6 +13,12 @@ jester::BasicDataFuser::BasicDataFuser() {
 	kBoneHistory = NULL;
 
 	kSkeletonUpdateThread = NULL;
+
+	if (filterFactory != NULL) {
+		for (int i = 0; i < Bone::BONE_COUNT; i++) {
+			kFilters.insert(std::pair<Bone::BoneId, Filter*>(Bone::intToBoneId(i), filterFactory->createFilter()));
+		}
+	}
 }
 
 void jester::BasicDataFuser::initializeHistory() {
@@ -49,8 +55,9 @@ void jester::BasicDataFuser::newData(Sensor *sensor, std::map<Bone::BoneId, Bone
 		}
 	}*/
 
-	kHistoryMutex.lock();
+	data = filterData(sensor, data);
 
+	kHistoryMutex.lock();
 	kBoneHistory[kNewestInfo].rawBoneData[sensor] = data;
 	kHistoryMutex.unlock();
 }
@@ -62,6 +69,23 @@ void jester::BasicDataFuser::newData(Sensor *sensor, std::map<Bone::JointId, Joi
 void jester::BasicDataFuser::addSensor(Sensor *sensor, std::map<Bone::BoneId, double> boneConfidence) {
 	kSensors.push_back(sensor);
 	kSensorConfidences.insert(std::pair<Sensor *, std::map<Bone::BoneId, double>>(sensor, boneConfidence));
+}
+
+std::map<jester::Bone::BoneId, jester::BoneFusionData> jester::BasicDataFuser::filterData(Sensor *sensor, std::map<Bone::BoneId, BoneFusionData> data) {
+	std::map<Bone::BoneId, BoneFusionData> filteredData;
+
+	for (int i = 0; i < Bone::BONE_COUNT; i++) {
+		std::map<Bone::BoneId, Filter*>::iterator filterIt = kFilters.find(Bone::intToBoneId(i));
+		std::map<Bone::BoneId, BoneFusionData>::iterator dataIt = data.find(Bone::intToBoneId(i));
+
+		if (filterIt != kFilters.end() && dataIt != data.end()) {
+			filteredData[Bone::intToBoneId(i)] = filterIt->second->update(sensor, dataIt->second);
+		} else if (dataIt != data.end()) {
+			filteredData[Bone::intToBoneId(i)] = dataIt->second;
+		}
+	}
+
+	return filteredData;
 }
 
 void jester::BasicDataFuser::updateSkeleton() {
@@ -223,6 +247,10 @@ jester::BasicDataFuser::~BasicDataFuser() {
 	kSkeletonUpdateThread->join();
 }
 
-jester::DataFusionModule* jester::BasicDataFuserFactory::CreateFusionModule() {
-	return new BasicDataFuser();
+jester::BasicDataFuserFactory::BasicDataFuserFactory(FilterFactory *filterFactory) : DataFusionModuleFactory(filterFactory) {
+
+}
+
+jester::DataFusionModule* jester::BasicDataFuserFactory::createFusionModule() {
+	return new BasicDataFuser(kFilterFactory);
 }

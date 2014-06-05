@@ -27,7 +27,7 @@ namespace jester {
 		virtual void addSensor(Sensor *sensor, std::map<Bone::BoneId, double> boneConfidence);
 		virtual void startFusion();
 
-		BasicDataFuser();
+		BasicDataFuser(FilterFactory *filterFactory);
 		virtual ~BasicDataFuser();
 
 	protected:
@@ -59,6 +59,7 @@ namespace jester {
 		virtual void initializeHistory();
 		virtual void initializeFilters();
 		virtual void updateSkeleton();
+		virtual std::map<Bone::BoneId, BoneFusionData> filterData(Sensor *sensor, std::map<Bone::BoneId, BoneFusionData> data);
 		virtual std::map<Bone::BoneId, BoneFusionData> fuseBoneDataFromStartFrame(int frame);
 		virtual void handleSwaps(std::map<Sensor *, std::map<Bone::BoneId, BoneFusionData>> *dataset);
 		virtual void insertBoneDataIntoMap(std::map<Bone::BoneId, BoneFusionData> *map, Sensor* sensor, std::map<Bone::BoneId, BoneFusionData> bones);
@@ -78,7 +79,9 @@ namespace jester {
 
 	class BasicDataFuserFactory : public DataFusionModuleFactory {
 	public:
-		DataFusionModule* CreateFusionModule();
+		DataFusionModule* createFusionModule();
+
+		BasicDataFuserFactory(FilterFactory *filterFactory);
 	};
 };
 

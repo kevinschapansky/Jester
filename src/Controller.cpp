@@ -5,7 +5,7 @@
 jester::Controller::Controller(DataFusionModuleFactory *fusionModuleFactory) {
 	kStartClock = std::clock();
 	kScene = NULL;
-	kFusionModule = fusionModuleFactory->CreateFusionModule();
+	kFusionModule = fusionModuleFactory->createFusionModule();
 	init();
 
 	kFusionModule->setSceneRoot(kScene);

@@ -14,6 +14,9 @@ void jester::LeapCarmineFuser::setLeap(Sensor *leap, std::map<jester::Bone::Bone
 }
 
 void jester::LeapCarmineFuser::handleSwaps(std::map<Sensor *, std::map<Bone::BoneId, BoneFusionData>> *dataset) {
+	if (kLeap == NULL || kCarmine == NULL)
+		return;
+
 	std::map<Bone::BoneId, BoneFusionData> leapData = dataset->find(kLeap)->second;
 	std::map<Bone::BoneId, BoneFusionData> carmineData = dataset->find(kCarmine)->second;
 
@@ -102,7 +105,7 @@ void jester::LeapCarmineFuser::swapBone(Bone::BoneId a, Bone::BoneId b, std::map
 	}
 }
 
-jester::LeapCarmineFuser::LeapCarmineFuser() {
+jester::LeapCarmineFuser::LeapCarmineFuser(FilterFactory* filterFactory) : BasicDataFuser(filterFactory) {
 	kCarmine = kLeap = NULL;
 }
 
@@ -110,6 +113,10 @@ jester::LeapCarmineFuser::~LeapCarmineFuser() {
 
 }
 
-jester::DataFusionModule* jester::LeapCarmineFuserFactory::CreateFusionModule() {
-	return new LeapCarmineFuser();
+jester::LeapCarmineFuserFactory::LeapCarmineFuserFactory(FilterFactory *filterFactory) : DataFusionModuleFactory(filterFactory) {
+
+}
+
+jester::DataFusionModule* jester::LeapCarmineFuserFactory::createFusionModule() {
+	return new LeapCarmineFuser(kFilterFactory);
 }

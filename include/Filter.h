@@ -1,14 +1,23 @@
 #ifndef _Filter_h_
 #define _Filter_h_
 
-#include "FusionBone.h"
+#include "DataFusionModule.h"
 
 namespace jester {
+	class BoneFusionData;
+
 	class Filter {
 	public:
-		virtual jester::FusionBone update(jester::FusionBone bone) = 0;
+		virtual BoneFusionData update(Sensor *sensor, BoneFusionData boneData) = 0;
 
-		virtual ~Filter() = 0;
+		virtual ~Filter() {};
+	};
+
+	class FilterFactory {
+	public:
+		virtual Filter* createFilter() = 0;
+
+		virtual ~FilterFactory() {};
 	};
 };
 

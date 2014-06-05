@@ -197,8 +197,19 @@ void jester::DataFusionModule::setSceneRoot(Scene *root) {
 	kSceneRoot = root;
 }
 
+jester::DataFusionModule::DataFusionModule(FilterFactory *filterFactory) {
+	kFilterFactory = filterFactory;
+	kBones = NULL;
+	kDefaultBones = NULL;
+	kSceneRoot = NULL;
+}
+
 jester::DataFusionModule::~DataFusionModule() {
 
+}
+
+jester::DataFusionModuleFactory::DataFusionModuleFactory(FilterFactory *factory) {
+	kFilterFactory = factory;
 }
 
 jester::DataFusionModuleFactory::~DataFusionModuleFactory() {}
