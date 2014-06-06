@@ -54,7 +54,7 @@ namespace jester {
 
 		std::vector<Sensor *> kSensors;
 		std::map<Sensor*, std::map<Bone::BoneId, double>> kSensorConfidences;
-		std::map<Bone::BoneId, Filter *> kFilters;
+		std::map<Sensor *, std::map<Bone::BoneId, Filter *>> kFilters;
 
 		virtual void initializeHistory();
 		virtual void initializeFilters();
@@ -66,6 +66,7 @@ namespace jester {
 		virtual void mergeKnownBoneWithAssumedBone(BoneFusionData *boneA, BoneFusionData *boneB);
 		virtual jester::BoneFusionData findSensorBoneFromFrame(int frame, Sensor *sensor, Bone::BoneId boneId);
 		virtual void advanceHistoryFrame();
+		virtual bool checkSensorRegistration(Sensor *sensor);
 	private:
 		double getWallTime() {
 			struct timeval time;

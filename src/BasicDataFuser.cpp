@@ -13,12 +13,6 @@ jester::BasicDataFuser::BasicDataFuser(FilterFactory *filterFactory) : DataFusio
 	kBoneHistory = NULL;
 
 	kSkeletonUpdateThread = NULL;
-
-	if (filterFactory != NULL) {
-		for (int i = 0; i < Bone::BONE_COUNT; i++) {
-			kFilters.insert(std::pair<Bone::BoneId, Filter*>(Bone::intToBoneId(i), filterFactory->createFilter()));
-		}
-	}
 }
 
 void jester::BasicDataFuser::initializeHistory() {
@@ -33,7 +27,16 @@ void jester::BasicDataFuser::initializeHistory() {
 }
 
 void jester::BasicDataFuser::initializeFilters() {
+	if (kFilterFactory != NULL) {
+		for (unsigned int sensorIx = 0; sensorIx < kSensors.size(); sensorIx++) {
+			std::map<Bone::BoneId, Filter*> filtersForSensor;
 
+			for (int i = 0; i < Bone::BONE_COUNT; i++) {
+				filtersForSensor.insert(std::pair<Bone::BoneId, Filter*>(Bone::intToBoneId(i), kFilterFactory->createFilter()));
+			}
+			kFilters.insert(std::pair<Sensor *, std::map<Bone::BoneId, Filter*>>(kSensors[sensorIx], filtersForSensor));
+		}
+	}
 }
 
 void jester::BasicDataFuser::startFusion() {
@@ -55,6 +58,9 @@ void jester::BasicDataFuser::newData(Sensor *sensor, std::map<Bone::BoneId, Bone
 		}
 	}*/
 
+	if (!checkSensorRegistration(sensor))
+		return;
+
 	data = filterData(sensor, data);
 
 	kHistoryMutex.lock();
@@ -73,12 +79,13 @@ void jester::BasicDataFuser::addSensor(Sensor *sensor, std::map<Bone::BoneId, do
 
 std::map<jester::Bone::BoneId, jester::BoneFusionData> jester::BasicDataFuser::filterData(Sensor *sensor, std::map<Bone::BoneId, BoneFusionData> data) {
 	std::map<Bone::BoneId, BoneFusionData> filteredData;
+	std::map<Bone::BoneId, Filter*> filtersForSensor = kFilters.find(sensor)->second;
 
 	for (int i = 0; i < Bone::BONE_COUNT; i++) {
-		std::map<Bone::BoneId, Filter*>::iterator filterIt = kFilters.find(Bone::intToBoneId(i));
+		std::map<Bone::BoneId, Filter*>::iterator filterIt = filtersForSensor.find(Bone::intToBoneId(i));
 		std::map<Bone::BoneId, BoneFusionData>::iterator dataIt = data.find(Bone::intToBoneId(i));
 
-		if (filterIt != kFilters.end() && dataIt != data.end()) {
+		if (filterIt != filtersForSensor.end() && dataIt != data.end()) {
 			filteredData[Bone::intToBoneId(i)] = filterIt->second->update(sensor, dataIt->second);
 		} else if (dataIt != data.end()) {
 			filteredData[Bone::intToBoneId(i)] = dataIt->second;
@@ -240,6 +247,15 @@ void jester::BasicDataFuser::advanceHistoryFrame() {
 		std::map<Bone::BoneId, BoneFusionData> cleanMap;
 		kBoneHistory[kNewestInfo].rawBoneData[kSensors[sensorIx]] = cleanMap;
 	}
+}
+
+bool jester::BasicDataFuser::checkSensorRegistration(Sensor *sensor) {
+	for (unsigned int i = 0; i < kSensors.size(); i++)
+		if (kSensors[i] == sensor)
+			return true;
+
+	printf("Unregistered sensor reporting data! Ignoring...\n");
+	return false;
 }
 
 jester::BasicDataFuser::~BasicDataFuser() {
