@@ -59,6 +59,7 @@ public:
 		int mouseOffsetY;
 		float x;
 		float z;
+		float y;
 		float pitch;
 		float yaw;
 		bool captureMouse;
@@ -77,10 +78,9 @@ public:
 		#ifndef NO_CARMINE
 			kCarmine = jester::PrimeSenseCarmineFactory::CreateCarmineSensor(kScene, kController);
 			glm::quat carmineOrientation = glm::angleAxis(0.f, glm::vec3(0, 0, 1));
-			carmineOrientation = glm::rotate(carmineOrientation, 3.14f * 4.f/32.f, glm::vec3(1, 0, 0));
-			carmineOrientation = glm::rotate(carmineOrientation, 3.14f * 1.f/32.f, glm::vec3(0, 1, 0));
+			carmineOrientation = glm::rotate(carmineOrientation, 3.14f * 3.5f/32.f, glm::vec3(1, 0, 0));
 			kCarmine->setOrientation(carmineOrientation);
-			kCarmine->setPosition(glm::vec3(0, .9144f, -0.4572f));
+			kCarmine->setPosition(glm::vec3(0, 1.0668f, -0.56515f));
 
 			std::map<jester::Bone::BoneId, double> carmineConfMap;
 
@@ -95,7 +95,7 @@ public:
 			kLeap = jester::LeapMotionFactory::CreateLeapSensor(kScene, kController);
 			glm::quat leapOrientation = glm::angleAxis(0.f, glm::vec3(0, 0, 1));
 			kLeap->setOrientation(leapOrientation);
-			kLeap->setPosition(glm::vec3(0, .2286f, 0.9398f));
+			kLeap->setPosition(glm::vec3(0, .2032f, 1.27f));
 
 			std::map<jester::Bone::BoneId, double> leapConfMap;
 
@@ -198,7 +198,7 @@ public:
 		
 		kRenderData.cameraTrans = glm::rotate(glm::mat4(1), kKeyData.yaw, glm::vec3(0.f, 1.f, 0.f));
 		kRenderData.cameraTrans = glm::rotate(kRenderData.cameraTrans, kKeyData.pitch, glm::vec3(1.f, 0.f, 0.f));
-		kRenderData.cameraTrans = glm::translate(kRenderData.cameraTrans, glm::vec3(kKeyData.x, 1.f, kKeyData.z));
+		kRenderData.cameraTrans = glm::translate(kRenderData.cameraTrans, glm::vec3(kKeyData.x, kKeyData.y, kKeyData.z));
 
 		if (kKeyData.captureMouse)
 			glutWarpPointer(kRenderData.windowWidth / 2, kRenderData.windowHeight / 2);
@@ -280,10 +280,11 @@ private:
 	void initialize() {
 		kRenderData.windowHeight = 600;
 		kRenderData.windowWidth = 600;
-		kKeyData.z = 5.0f;
+		kKeyData.z = 3.f;
 		kKeyData.x = 0.f;
-		kKeyData.yaw = 0.f;
-		kKeyData.pitch = 0.f;
+		kKeyData.y = 1.7f;
+		kKeyData.yaw = -3.14f;
+		kKeyData.pitch = -.9f;
 		kKeyData.highlightedBone = 0;
 		kKeyData.captureMouse = true;
 
